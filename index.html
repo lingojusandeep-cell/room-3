@@ -1129,50 +1129,169 @@
     }
 
     function copyAppsScriptTemplate() {
-      const scriptCode = `function doGet(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var data = sheet.getDataRange().getValues();
-  var result = [];
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][0]) {
-      result.push({
-        id: data[i][0],
-        title: data[i][1],
-        amount: data[i][2],
-        paidBy: data[i][3],
-        date: data[i][4],
-        involved: data[i][5]
-      });
-    }
+      const scriptCode = `const SHEET_NAME = "Expenses";
+const HEADERS = ["ID", "Title", "Amount", "Paid By", "Date", "Involved Members"];
+
+function doGet(e) {
+  try {
+    const sheet = getSheet_();
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) return json_([]);
+
+    const values = sheet.getRange(2, 1, lastRow - 1, 6).getValues();
+    const tz = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone() || Session.getScriptTimeZone() || "Asia/Kolkata";
+
+    const result = values.filter(r => r[0] !== "").map(r => ({
+      id: String(r[0]),
+      title: String(r[1] || ""),
+      amount: Number(r[2]) || 0,
+      paidBy: String(r[3] || ""),
+      date: formatDate_(r[4], tz),
+      involved: String(r[5] || "")
+    }));
+
+    return json_(result);
+  } catch (err) {
+    return json_({status: "error", message: String(err)});
   }
-  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var body = JSON.parse(e.postData.contents);
-  
-  if (body.action === "deleteExpense") {
-    var data = sheet.getDataRange().getValues();
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][0] == body.id) {
-        sheet.deleteRow(i + 1);
-        break;
-      }
+  try {
+    const body = JSON.parse((e && e.postData && e.postData.contents) || "{}");
+    const action = body.action || "addExpense";
+    const sheet = getSheet_();
+
+    if (action === "addExpense") {
+      addExpense_(sheet, body);
+    } else if (action === "editExpense") {
+      editExpense_(sheet, body);
+    } else if (action === "deleteExpense") {
+      deleteExpense_(sheet, String(body.id || ""));
+    } else {
+      throw new Error("Unknown action: " + action);
     }
-  } else if (body.action === "editExpense") {
-    var data = sheet.getDataRange().getValues();
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][0] == body.id) {
-        sheet.getRange(i + 1, 2, 1, 5).setValues([[body.title, body.amount, body.paidBy, body.date, body.involved]]);
-        break;
-      }
-    }
-  } else {
-    sheet.appendRow([body.id, body.title, body.amount, body.paidBy, body.date, body.involved]);
+
+    return json_({status: "success", action: action});
+  } catch (err) {
+    return json_({status: "error", message: String(err)});
   }
-  
-  return ContentService.createTextOutput(JSON.stringify({status: "success"})).setMimeType(ContentService.MimeType.JSON);
+}
+
+function getSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) sheet = ss.insertSheet(SHEET_NAME);
+
+  if (sheet.getLastRow() === 0) {
+    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+  } else {
+    const header = sheet.getRange(1, 1, 1, HEADERS.length).getValues()[0];
+    if (header.join("|") !== HEADERS.join("|")) {
+      sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+    }
+  }
+
+  sheet.setFrozenRows(1);
+  sheet.getRange("A1:F1").setFontWeight("bold");
+  sheet.getRange("C:C").setNumberFormat("₹#,##0.00");
+  sheet.getRange("E:E").setNumberFormat("dd-MM-yyyy");
+  return sheet;
+}
+
+function addExpense_(sheet, body) {
+  const id = String(body.id || "exp_" + Date.now());
+  const title = String(body.title || "");
+  const amount = Number(body.amount) || 0;
+  const paidBy = String(body.paidBy || "");
+  const date = parseDate_(body.date);
+  const involved = Array.isArray(body.involved) ? body.involved.join(", ") : String(body.involved || "");
+
+  if (!title) throw new Error("Expense title is required");
+  if (!(amount > 0)) throw new Error("Amount must be greater than zero");
+  if (!date) throw new Error("Valid date is required");
+
+  sheet.appendRow([id, title, amount, paidBy, date, involved]);
+  const row = sheet.getLastRow();
+  sheet.getRange(row, 3).setNumberFormat("₹#,##0.00");
+  sheet.getRange(row, 5).setNumberFormat("dd-MM-yyyy");
+}
+
+function editExpense_(sheet, body) {
+  const id = String(body.id || "");
+  if (!id) throw new Error("Expense ID is required");
+
+  const row = findRowById_(sheet, id);
+  if (row === -1) {
+    // If an older local record does not exist in the sheet, create it.
+    addExpense_(sheet, body);
+    return;
+  }
+
+  const date = parseDate_(body.date);
+  if (!date) throw new Error("Valid date is required");
+
+  const involved = Array.isArray(body.involved) ? body.involved.join(", ") : String(body.involved || "");
+  sheet.getRange(row, 2, 1, 5).setValues([[
+    String(body.title || ""),
+    Number(body.amount) || 0,
+    String(body.paidBy || ""),
+    date,
+    involved
+  ]]);
+  sheet.getRange(row, 3).setNumberFormat("₹#,##0.00");
+  sheet.getRange(row, 5).setNumberFormat("dd-MM-yyyy");
+}
+
+function deleteExpense_(sheet, id) {
+  if (!id) throw new Error("Expense ID is required");
+  const row = findRowById_(sheet, id);
+  if (row !== -1) sheet.deleteRow(row);
+}
+
+function findRowById_(sheet, id) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return -1;
+  const ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  for (let i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]) === String(id)) return i + 2;
+  }
+  return -1;
+}
+
+function parseDate_(value) {
+  if (!value) return null;
+  if (Object.prototype.toString.call(value) === "[object Date]") return value;
+
+  const s = String(value).trim();
+  const m = s.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+  if (m) {
+    // Construct using local spreadsheet/script timezone to avoid UTC date shifting.
+    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, 0);
+  }
+
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function formatDate_(value, tz) {
+  if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
+    return Utilities.formatDate(value, tz, "yyyy-MM-dd");
+  }
+  if (value === null || value === "") return "";
+
+  const s = String(value).trim();
+  const m = s.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+  if (m) return s;
+
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? s : Utilities.formatDate(d, tz, "yyyy-MM-dd");
+}
+
+function json_(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
 }`;
 
       const tempInput = document.createElement('textarea');
@@ -1182,7 +1301,24 @@ function doPost(e) {
       document.execCommand('copy');
       document.body.removeChild(tempInput);
 
-      showToast("Apps Script template copied to clipboard!", "success");
+      showToast("Complete Apps Script copied to clipboard!", "success");
+    }
+
+    function normalizeSheetDate(value) {
+      if (!value) return '';
+      const s = String(value).trim();
+      if (/^\\d{4}-\\d{2}-\\d{2}$/.test(s)) return s;
+
+      // Handle a date returned by Apps Script such as dd-MM-yyyy.
+      let m = s.match(/^(\\d{2})-(\\d{2})-(\\d{4})$/);
+      if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+
+      const d = new Date(s);
+      if (isNaN(d.getTime())) return new Date().toISOString().split('T')[0];
+      const y = d.getFullYear();
+      const mo = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${mo}-${day}`;
     }
 
     function fetchSheetData() {
@@ -1191,69 +1327,82 @@ function doPost(e) {
       const refreshIcon = document.getElementById('refreshIcon');
       if (refreshIcon) refreshIcon.classList.add('animate-spin');
 
-      fetch(googleSheetUrl)
+      fetch(googleSheetUrl, { method: 'GET', cache: 'no-store' })
         .then(res => {
-          if (!res.ok) {
-            throw new Error(`HTTP ${res.status}`);
-          }
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
           return res.json();
         })
         .then(data => {
-          if (Array.isArray(data)) {
-            expenses = data.map((row, idx) => ({
-              id: row.id || 'sheet_' + idx + '_' + Date.now(),
-              title: row.title || 'Expense',
-              amount: parseFloat(row.amount) || 0,
-              paidBy: row.paidBy || 'Sai',
-              date: row.date || new Date().toISOString().split('T')[0],
-              involved: typeof row.involved === 'string' ? row.involved.split(',').map(s => s.trim()) : (row.involved || MEMBERS)
-            }));
-            saveStateToLocalStorage();
-            renderAppView();
-            if (activeTab === 'logs') renderLogsTab();
-            showToast("Synced from Google Sheets!", "success");
-          }
+          if (!Array.isArray(data)) throw new Error(data.message || 'Invalid response');
+
+          expenses = data.map((row, idx) => ({
+            id: String(row.id || 'sheet_' + idx + '_' + Date.now()),
+            title: row.title || 'Expense',
+            amount: parseFloat(row.amount) || 0,
+            paidBy: row.paidBy || 'Sai',
+            date: normalizeSheetDate(row.date),
+            involved: typeof row.involved === 'string'
+              ? row.involved.split(',').map(s => s.trim()).filter(Boolean)
+              : (Array.isArray(row.involved) ? row.involved : MEMBERS)
+          }));
+
+          saveStateToLocalStorage();
+          renderAppView();
+          if (activeTab === 'logs') renderLogsTab();
+          showToast("Synced from Google Sheets!", "success");
         })
         .catch(err => {
           console.warn("Sheets Fetch Notice:", err);
-          showToast("Sync failed: Set Web App access to 'Anyone' in Apps Script", "error");
+          showToast("Sync failed. Check the Web App URL and Apps Script access.", "error");
         })
         .finally(() => {
           if (refreshIcon) refreshIcon.classList.remove('animate-spin');
         });
     }
 
+    async function postToSheet(payload) {
+      if (!googleSheetUrl || !googleSheetUrl.startsWith('https://script.google.com/')) return false;
+
+      try {
+        // text/plain avoids a CORS preflight with Google Apps Script web apps.
+        const response = await fetch(googleSheetUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        if (data.status !== 'success') throw new Error(data.message || 'Google Sheets error');
+        return true;
+      } catch (err) {
+        console.warn("Sheets Sync Notice:", err);
+        return false;
+      }
+    }
+
     function syncExpenseToSheet(item, actionType) {
-      if (!googleSheetUrl || !googleSheetUrl.startsWith('https://script.google.com/')) return;
+      if (!googleSheetUrl) return;
 
       const payload = {
         action: actionType,
-        ...item,
-        involved: Array.isArray(item.involved) ? item.involved.join(', ') : item.involved
+        id: item.id,
+        title: item.title,
+        amount: item.amount,
+        paidBy: item.paidBy,
+        date: normalizeSheetDate(item.date),
+        involved: Array.isArray(item.involved) ? item.involved.join(', ') : String(item.involved || '')
       };
 
-      fetch(googleSheetUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }).catch(err => console.warn("Sheets Sync Notice:", err));
+      postToSheet(payload).then(ok => {
+        if (!ok) showToast("Saved locally, but Google Sheets sync failed.", "error");
+      });
     }
 
     function deleteExpenseFromSheet(id) {
-      if (!googleSheetUrl || !googleSheetUrl.startsWith('https://script.google.com/')) return;
-
-      const payload = {
-        action: 'deleteExpense',
-        id: id
-      };
-
-      fetch(googleSheetUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }).catch(err => console.warn("Sheets Delete Notice:", err));
+      if (!googleSheetUrl) return;
+      postToSheet({ action: 'deleteExpense', id: id }).then(ok => {
+        if (!ok) showToast("Deleted locally, but Sheets delete failed.", "error");
+      });
     }
 
     function toggleDarkMode() {
