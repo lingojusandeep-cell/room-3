@@ -1,1312 +1,1294 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ROOM 3 Expense Splitter App</title>
-
-    <!-- Tailwind CSS, FontAwesome Icons & Chart.js -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#eef2ff',
-                            100: '#e0e7ff',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                            900: '#1e1b4b',
-                            bgDark: '#0b0f19',
-                            cardDark: '#151c2c'
-                        }
-                    },
-                    boxShadow: {
-                        'tab-bar': '0 -4px 25px rgba(0, 0, 0, 0.08)',
-                        'float-glow': '0 10px 30px -5px rgba(79, 70, 229, 0.45)'
-                    }
-                }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ROOM 3 - Mobile Expense App</title>
+  
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            emerald: {
+              500: '#10b981',
+              600: '#059669',
             }
+          },
+          animation: {
+            'slide-up': 'slideUp 0.3s ease-out forwards'
+          },
+          keyframes: {
+            slideUp: {
+              '0%': { transform: 'translateY(100%)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' }
+            }
+          }
         }
-    </script>
+      }
+    }
+  </script>
 
-    <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior-y: contain;
+    }
+    
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
 
-        .view-pane {
-            animation: paneFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+    .nav-glass {
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
 
-        @keyframes paneFadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        .glass-nav {
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-        }
-        .dark .glass-nav {
-            background: rgba(15, 23, 42, 0.88);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-        }
-
-        .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5.5rem); }
-    </style>
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom, 16px);
+    }
+    .pt-safe {
+      padding-top: env(safe-area-inset-top, 16px);
+    }
+  </style>
 </head>
-<body class="bg-slate-900 text-slate-800 dark:text-slate-100 h-full flex justify-center items-center overflow-hidden antialiased">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100 bg-slate-50 text-slate-900">
 
-    <!-- MOBILE CONTAINER SHELL -->
-    <div id="mobile-shell" class="w-full max-w-md h-full sm:h-[92vh] sm:rounded-[40px] bg-slate-50 dark:bg-slate-950 flex flex-col relative overflow-hidden shadow-2xl border-0 sm:border-[8px] sm:border-slate-800">
+  <header id="appHeader" class="sticky top-0 z-40 bg-slate-900/80 dark:bg-slate-900/80 bg-white/80 border-b border-slate-800 dark:border-slate-800 border-slate-200 nav-glass px-4 py-3 pt-safe hidden">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+          <i data-lucide="building-2" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-black tracking-tight leading-tight">ROOM 3</h1>
+          <p class="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            5 Active Members
+          </p>
+        </div>
+      </div>
 
-        <!-- TOAST NOTIFICATION -->
-        <div id="toast" class="absolute top-4 left-4 right-4 z-50 transform -translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center justify-center">
-            <div id="toast-inner" class="bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 px-4 py-3 rounded-2xl shadow-xl text-xs font-semibold flex items-center gap-2.5 max-w-full">
-                <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 dark:text-emerald-600 text-sm"></i>
-                <span id="toast-text">Notification</span>
+      <!-- Quick Controls including Logout Button -->
+      <div class="flex items-center space-x-1.5">
+        <button onclick="fetchSheetData()" title="Sync Google Sheets" class="p-2 rounded-xl bg-slate-800/80 dark:bg-slate-800/80 bg-slate-100 text-slate-300 dark:text-slate-300 text-slate-700 active:scale-95 transition">
+          <i data-lucide="refresh-cw" id="refreshIcon" class="w-4 h-4"></i>
+        </button>
+        <button onclick="toggleDarkMode()" title="Toggle Theme" class="p-2 rounded-xl bg-slate-800/80 dark:bg-slate-800/80 bg-slate-100 text-slate-300 dark:text-slate-300 text-slate-700 active:scale-95 transition">
+          <i data-lucide="moon" id="themeIcon" class="w-4 h-4"></i>
+        </button>
+        <button onclick="openConfigModal()" title="Sheet Config" class="p-2 rounded-xl bg-slate-800/80 dark:bg-slate-800/80 bg-slate-100 text-slate-300 dark:text-slate-300 text-slate-700 active:scale-95 transition">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+        </button>
+        <button onclick="handleLogout()" title="Log Out" class="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 active:scale-95 transition flex items-center gap-1">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="loginScreen" class="flex-grow flex items-center justify-center p-4">
+    <div class="w-full max-w-sm space-y-6">
+      
+      <div class="text-center space-y-2">
+        <div class="inline-flex p-4 rounded-3xl bg-gradient-to-tr from-brand-600 to-indigo-500 text-white shadow-xl shadow-brand-500/20 mb-1">
+          <i data-lucide="wallet" class="w-10 h-10"></i>
+        </div>
+        <h2 class="text-2xl font-black tracking-tight">ROOM 3 Mobile</h2>
+        <p class="text-xs text-slate-400 font-medium">Log in to split bills, view balance & sync expenses</p>
+      </div>
+
+      <div class="bg-slate-900/90 dark:bg-slate-900/90 bg-white border border-slate-800 dark:border-slate-800 border-slate-200 rounded-3xl p-6 shadow-2xl space-y-5">
+        <form onsubmit="handleLogin(event)" class="space-y-4">
+          
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Select Member</label>
+            <select id="loginMember" required class="w-full px-4 py-3 rounded-2xl bg-slate-800/80 dark:bg-slate-800/80 bg-slate-100 text-white dark:text-white text-slate-900 border border-slate-700 dark:border-slate-700 border-slate-300 text-sm focus:outline-none focus:border-brand-500 font-semibold">
+              <option value="" disabled selected>-- Choose Profile --</option>
+              <option value="Sai">Sai</option>
+              <option value="Pavan">Pavan</option>
+              <option value="John">John</option>
+              <option value="Praveen">Praveen</option>
+              <option value="Rakesh">Rakesh</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Passcode</label>
+            <div class="relative">
+              <input type="password" id="loginPasscode" required placeholder="Enter passcode" class="w-full px-4 py-3 rounded-2xl bg-slate-800/80 dark:bg-slate-800/80 bg-slate-100 text-white dark:text-white text-slate-900 border border-slate-700 dark:border-slate-700 border-slate-300 text-sm focus:outline-none focus:border-brand-500 font-semibold pr-10">
+              <button type="button" onclick="togglePassVisibility('loginPasscode', 'loginPassIcon')" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                <i data-lucide="eye" id="loginPassIcon" class="w-4 h-4"></i>
+              </button>
             </div>
+            <div class="flex justify-between items-center text-[10px] text-slate-400 mt-1.5">
+              <span>Default: <b>name123</b></span>
+              <button type="button" onclick="showToast('Defaults: sai123, pavan123, john123, praveen123, rakesh123', 'info')" class="text-brand-500 font-bold hover:underline">View Defaults</button>
+            </div>
+          </div>
+
+          <div id="loginErrorMsg" class="hidden text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-xl flex items-center gap-2 font-medium">
+            <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
+            <span id="loginErrorText">Incorrect passcode!</span>
+          </div>
+
+          <button type="submit" class="w-full py-3.5 px-4 rounded-2xl font-bold bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white shadow-lg shadow-brand-500/25 active:scale-95 transition flex items-center justify-center gap-2">
+            <span>Enter App Portal</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <main id="appContent" class="hidden flex-grow max-w-md w-full mx-auto p-4 pb-28 space-y-5">
+
+    <!-- TAB 1: DASHBOARD HOME VIEW -->
+    <div id="tabHome" class="space-y-4">
+      
+      <!-- Profile Card & Actions (Includes Logout) -->
+      <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 bg-slate-900 text-white rounded-3xl p-5 border border-slate-800 shadow-xl relative overflow-hidden">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <div id="userAvatar" class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center text-white font-black text-lg shadow-md ring-2 ring-white/10">
+              S
+            </div>
+            <div>
+              <h2 id="welcomeText" class="text-lg font-bold">Hello, Sai!</h2>
+              <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-medium">ROOM 3 Member</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="openChangePasswordModal()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs flex items-center gap-1 font-semibold">
+              <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
+              <span>PIN</span>
+            </button>
+            <button onclick="handleLogout()" class="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs flex items-center gap-1 font-semibold">
+              <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+              <span>Logout</span>
+            </button>
+          </div>
         </div>
 
-        <!-- 1. LOGIN SCREEN -->
-        <div id="view-login" class="flex-1 flex flex-col justify-between p-6 bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-950 text-white z-20">
-            <div class="pt-8 text-center space-y-2">
-                <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 text-white shadow-float-glow mb-2">
-                    <i class="fa-solid fa-users-viewfinder text-3xl"></i>
-                </div>
-                <h1 class="text-3xl font-extrabold tracking-tight">ROOM 3</h1>
-                <p class="text-xs text-indigo-200/80 font-medium tracking-wide">SMART EXPENSE SPLITTER</p>
-            </div>
+        <div class="grid grid-cols-3 gap-2 pt-3 border-t border-slate-800 text-center">
+          <div class="p-2.5 rounded-2xl bg-slate-800/50 border border-slate-800">
+            <span class="text-[10px] text-slate-400 block font-medium uppercase">Your Spend</span>
+            <span id="userSpentText" class="text-sm font-black text-white mt-0.5 block">₹0.00</span>
+          </div>
+          <div class="p-2.5 rounded-2xl bg-slate-800/50 border border-slate-800">
+            <span class="text-[10px] text-slate-400 block font-medium uppercase">Your Share</span>
+            <span id="userOwedText" class="text-sm font-black text-slate-300 mt-0.5 block">₹0.00</span>
+          </div>
+          <div class="p-2.5 rounded-2xl bg-slate-800/50 border border-slate-800">
+            <span class="text-[10px] text-slate-400 block font-medium uppercase">Net Status</span>
+            <span id="userNetStatusText" class="text-xs font-extrabold mt-0.5 block text-emerald-400">₹0.00</span>
+          </div>
+        </div>
+      </div>
 
-            <div class="my-auto space-y-5 bg-white/10 backdrop-blur-xl p-6 rounded-3xl border border-white/10 shadow-2xl">
-                <div class="text-center">
-                    <h2 class="text-lg font-bold">Select Member Profile</h2>
-                    <p class="text-xs text-slate-300 mt-1">Enter PIN to access your personal dashboard</p>
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-bold uppercase tracking-wider text-indigo-200 mb-1.5">Member Name</label>
-                    <select id="login-member" class="w-full bg-slate-900/90 border border-indigo-500/30 text-white rounded-2xl px-4 py-3.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                        <!-- Populated dynamically via JavaScript -->
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-bold uppercase tracking-wider text-indigo-200 mb-1.5">4-Digit PIN Password</label>
-                    <input type="password" maxlength="4" pattern="[0-9]*" inputmode="numeric" id="login-pin" placeholder="••••" class="w-full bg-slate-900/90 border border-indigo-500/30 text-white text-center text-2xl tracking-[0.5em] font-bold rounded-2xl py-3 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                </div>
-
-                <button onclick="handleLogin()" class="w-full bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 hover:opacity-95 text-white font-bold py-3.5 rounded-2xl shadow-float-glow active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm">
-                    <i class="fa-solid fa-right-to-bracket"></i> Login to ROOM 3
-                </button>
-            </div>
-
-            <div class="text-center pb-2">
-                <button onclick="openPinModal()" class="text-xs text-indigo-300/80 hover:text-white underline font-medium">
-                    <i class="fa-solid fa-key mr-1"></i> View PIN Credentials Directory
-                </button>
-            </div>
+      <!-- Quick Room Summary Grid -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="p-4 rounded-2xl bg-slate-900/80 dark:bg-slate-900/80 bg-white border border-slate-800 dark:border-slate-800 border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Room Expense</span>
+            <span id="roomTotalText" class="text-lg font-black mt-0.5 block text-brand-500">₹0.00</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-brand-500/10 text-brand-500">
+            <i data-lucide="receipt" class="w-5 h-5"></i>
+          </div>
         </div>
 
-        <!-- 2. MAIN APPLICATION WORKSPACE -->
-        <div id="app-main" class="hidden flex-1 flex flex-col h-full relative">
-            
-            <!-- App Top Header with Logout Button -->
-            <header class="glass-nav sticky top-0 z-30 px-5 py-3.5 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center font-extrabold text-sm shadow">
-                        <span id="nav-avatar">S</span>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-1.5">
-                            <span id="nav-username" class="font-bold text-sm text-slate-900 dark:text-white leading-none">User</span>
-                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        </div>
-                        <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">ROOM 3 Member</span>
-                    </div>
+        <div class="p-4 rounded-2xl bg-slate-900/80 dark:bg-slate-900/80 bg-white border border-slate-800 dark:border-slate-800 border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Receipts</span>
+            <span id="roomReceiptsCount" class="text-lg font-black mt-0.5 block text-slate-200 dark:text-slate-200 text-slate-800">0 Logs</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500">
+            <i data-lucide="layers" class="w-5 h-5"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Member Wise Breakdown List -->
+      <div class="bg-slate-900/80 dark:bg-slate-900/80 bg-white border border-slate-800 dark:border-slate-800 border-slate-200 rounded-3xl p-4 space-y-3 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <i data-lucide="users" class="w-3.5 h-3.5 text-brand-500"></i>
+            Member Standings
+          </h3>
+          <span class="text-[10px] font-semibold text-slate-500">5 Members</span>
+        </div>
+
+        <div id="membersSpendingList" class="space-y-2">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Debt Settlement Card -->
+      <div class="bg-slate-900/80 dark:bg-slate-900/80 bg-white border border-slate-800 dark:border-slate-800 border-slate-200 rounded-3xl p-4 space-y-3 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <i data-lucide="arrow-right-left" class="w-3.5 h-3.5 text-amber-500"></i>
+            Suggested Settlements
+          </h3>
+          <span class="text-[10px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">Optimized</span>
+        </div>
+
+        <div id="settlementsList" class="space-y-2">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </div>
+
+    <div id="tabAdd" class="hidden space-y-4">
+      <div class="bg-slate-900/80 dark:bg-slate-900/80 bg-white border border-slate-800 dark:border-slate-800 border-slate-200 rounded-3xl p-5 shadow-xl space-y-4">
+        
+        <div class="border-b border-slate-800 dark:border-slate-800 border-slate-200 pb-3">
+          <h3 id="formTitle" class="text-base font-bold flex items-center gap-2">
+            <i data-lucide="plus-circle" class="w-5 h-5 text-brand-500"></i>
+            Log Room Expense
+          </h3>
+          <p class="text-xs text-slate-400">Add spending & exclude uninvolved room members</p>
+        </div>
+
+        <form onsubmit="handleAddExpense(event)" class="space-y-4">
+          <input type="hidden" id="expEditingId" value="">
+
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Expense Title</label>
+            <input type="text" id="expTitle" required placeholder="e.g., Grocery, Milk, WiFi, Dinner" class="w-full px-4 py-3 rounded-2xl bg-slate-800/80 dark:bg-slate-800/80 bg-slate-100 text-white dark:text-white text-slate-900 border border-slate-700 dark:border-slate-700 border-slate-300 text-sm focus:outline-none focus:border-brand-500 font-medium">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Amount (₹)</label>
+              <input type="number" step="0.01" min="0.01" id="expAmount" required placeholder="0.00" class="w-full px-4 py-3 rounded-2xl bg-slate-800/80 dark:bg-slate-800/80 bg-slate-100 text-white dark:text-white text-slate-900 border border-slate-700 dark:border-slate-700 border-slate-300 text-sm focus:outline-none focus:border-brand-500 font-bold">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Paid By</label>
+              <select id="expPaidBy" required class="w-full px-3 py-3 rounded-2xl bg-slate-800/80 dark:bg-slate-800/80 bg-slate-100 text-white dark:text-white text-slate-900 border border-slate-700 dark:border-slate-700 border-slate-300 text-sm focus:outline-none focus:border-brand-500 font-bold">
+                <option value="Sai">Sai</option>
+                <option value="Pavan">Pavan</option>
+                <option value="John">John</option>
+                <option value="Praveen">Praveen</option>
+                <option value="Rakesh">Rakesh</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Date</label>
+            <input type="date" id="expDate" required class="w-full px-4 py-3 rounded-2xl bg-slate-800/80 dark:bg-slate-800/80 bg-slate-100 text-white dark:text-white text-slate-900 border border-slate-700 dark:border-slate-700 border-slate-300 text-sm focus:outline-none focus:border-brand-500 font-medium">
+          </div>
+
+          <!-- Involved Members Selection -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Involved Members</label>
+              <button type="button" onclick="selectAllCheckboxes(true)" class="text-[11px] text-brand-400 font-bold hover:underline">Select All</button>
+            </div>
+            <p class="text-[11px] text-slate-500 mb-2">Uncheck members who did NOT share this expense:</p>
+
+            <div class="grid grid-cols-2 gap-2 bg-slate-800/40 dark:bg-slate-800/40 bg-slate-100 p-3 rounded-2xl border border-slate-700/60 dark:border-slate-700/60 border-slate-300">
+              <label class="flex items-center space-x-2.5 p-1.5 cursor-pointer text-xs font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+                <input type="checkbox" value="Sai" class="member-chip h-4 w-4 rounded accent-brand-600" checked>
+                <span>Sai</span>
+              </label>
+              <label class="flex items-center space-x-2.5 p-1.5 cursor-pointer text-xs font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+                <input type="checkbox" value="Pavan" class="member-chip h-4 w-4 rounded accent-brand-600" checked>
+                <span>Pavan</span>
+              </label>
+              <label class="flex items-center space-x-2.5 p-1.5 cursor-pointer text-xs font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+                <input type="checkbox" value="John" class="member-chip h-4 w-4 rounded accent-brand-600" checked>
+                <span>John</span>
+              </label>
+              <label class="flex items-center space-x-2.5 p-1.5 cursor-pointer text-xs font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+                <input type="checkbox" value="Praveen" class="member-chip h-4 w-4 rounded accent-brand-600" checked>
+                <span>Praveen</span>
+              </label>
+              <label class="flex items-center space-x-2.5 p-1.5 cursor-pointer text-xs font-bold text-slate-200 dark:text-slate-200 text-slate-800">
+                <input type="checkbox" value="Rakesh" class="member-chip h-4 w-4 rounded accent-brand-600" checked>
+                <span>Rakesh</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="flex gap-2">
+            <button type="button" id="cancelEditBtn" onclick="resetExpenseForm()" class="hidden w-1/3 py-3.5 rounded-2xl font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+              Cancel
+            </button>
+            <button type="submit" id="submitExpenseBtn" class="flex-grow py-3.5 rounded-2xl font-bold bg-gradient-to-r from-brand-600 to-indigo-600 text-white shadow-lg shadow-brand-500/25 active:scale-95 transition flex items-center justify-center gap-2">
+              <i data-lucide="check" class="w-4 h-4"></i>
+              <span id="submitBtnText">Save & Split Expense</span>
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+
+    <div id="tabLogs" class="hidden space-y-4">
+      <div class="bg-slate-900/80 dark:bg-slate-900/80 bg-white border border-slate-800 dark:border-slate-800 border-slate-200 rounded-3xl p-4 shadow-sm space-y-3">
+        
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <i data-lucide="list-filter" class="w-3.5 h-3.5 text-brand-500"></i>
+            Recent Expenses
+          </h3>
+          <span id="logCountBadge" class="text-[10px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full">0 Entries</span>
+        </div>
+
+        <div class="relative">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="text" id="logSearchInput" oninput="renderLogsTab()" placeholder="Filter by title or payer name..." class="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-800/80 dark:bg-slate-800/80 bg-slate-100 text-white dark:text-white text-slate-900 border border-slate-700/80 dark:border-slate-700/80 border-slate-300 text-xs focus:outline-none focus:border-brand-500">
+        </div>
+
+        <div id="expensesLogsList" class="space-y-2.5">
+          <!-- Dynamically populated cards -->
+        </div>
+
+        <div id="emptyLogState" class="hidden py-8 text-center space-y-2">
+          <i data-lucide="inbox" class="w-8 h-8 text-slate-600 mx-auto"></i>
+          <p class="text-xs text-slate-400 font-medium">No expense records found.</p>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <nav id="bottomNav" class="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/90 dark:bg-slate-900/90 bg-white/90 border-t border-slate-800 dark:border-slate-800 border-slate-200 nav-glass pb-safe hidden">
+    <div class="max-w-md mx-auto grid grid-cols-3 px-2 py-2 text-center">
+      
+      <button onclick="switchTab('home')" id="navHomeBtn" class="flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-brand-500 font-bold transition active:scale-90">
+        <i data-lucide="home" class="w-5 h-5 mb-0.5"></i>
+        <span class="text-[10px]">Overview</span>
+      </button>
+
+      <button onclick="switchTab('add')" id="navAddBtn" class="flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-slate-400 font-medium transition active:scale-90">
+        <div class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-md shadow-brand-500/30 -mt-2 mb-0.5">
+          <i data-lucide="plus" class="w-5 h-5"></i>
+        </div>
+        <span class="text-[10px]">Add Spend</span>
+      </button>
+
+      <button onclick="switchTab('logs')" id="navLogsBtn" class="flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-slate-400 font-medium transition active:scale-90">
+        <i data-lucide="receipt" class="w-5 h-5 mb-0.5"></i>
+        <span class="text-[10px]">Expenses</span>
+      </button>
+
+    </div>
+  </nav>
+
+  <div id="changePassModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-3xl p-5 space-y-4 animate-slide-up">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-sm font-bold flex items-center gap-2 text-white">
+          <i data-lucide="shield-check" class="w-4 h-4 text-brand-500"></i>
+          Update Member Passcode
+        </h3>
+        <button onclick="closeChangePasswordModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleChangePassword(event)" class="space-y-3">
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Current Passcode</label>
+          <input type="password" id="currPass" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-brand-500">
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">New Passcode</label>
+          <input type="password" id="newPass" required minlength="4" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-brand-500">
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Confirm New Passcode</label>
+          <input type="password" id="confirmPass" required minlength="4" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-brand-500">
+        </div>
+
+        <div id="passModalAlert" class="hidden text-xs p-2.5 rounded-xl font-medium"></div>
+
+        <button type="submit" class="w-full py-3 rounded-xl font-bold bg-brand-600 text-white text-xs shadow-lg active:scale-95 transition">
+          Save New Passcode
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="sheetConfigModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-3xl p-5 space-y-4 animate-slide-up max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-sm font-bold flex items-center gap-2 text-white">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-500"></i>
+          Google Sheets Sync Setup
+        </h3>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <p class="text-xs text-slate-300 leading-relaxed">
+          Paste your Google Apps Script Web App URL below. When deploying in Apps Script, set:
+        </p>
+        <ul class="text-[11px] text-slate-400 list-disc pl-4 space-y-1">
+          <li><b>Execute as:</b> Me</li>
+          <li><b>Who has access:</b> <span class="text-emerald-400 font-bold">Anyone</span> (Required for cross-origin sync)</li>
+        </ul>
+
+        <div>
+          <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Google Web App URL</label>
+          <input type="url" id="sheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500 font-mono">
+        </div>
+
+        <button onclick="copyAppsScriptTemplate()" class="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded-xl border border-slate-700 text-[11px] font-bold flex items-center justify-between">
+          <span>Copy Apps Script Code</span>
+          <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+        </button>
+
+        <div class="flex gap-2 pt-1">
+          <button onclick="saveSheetUrl()" class="flex-grow py-2.5 rounded-xl font-bold bg-emerald-600 text-white text-xs shadow-lg active:scale-95 transition">
+            Save Endpoint URL
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastNotification" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 transform -translate-y-16 opacity-0 transition-all duration-300 pointer-events-none max-w-xs w-full px-4">
+    <div class="bg-slate-900 border border-brand-500/30 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border-l-4 border-l-brand-500">
+      <i data-lucide="info" id="toastIcon" class="w-5 h-5 text-brand-400 shrink-0"></i>
+      <span id="toastMessage" class="text-xs font-semibold">Notification</span>
+    </div>
+  </div>
+
+  <!-- Custom Confirmation Modal (Replaces browser confirm) -->
+  <div id="customConfirmModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-xs bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4 animate-slide-up text-center">
+      <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center mx-auto">
+        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h3 id="confirmModalTitle" class="text-sm font-bold text-white">Are you sure?</h3>
+        <p id="confirmModalText" class="text-xs text-slate-400 mt-1">This action cannot be undone.</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="closeConfirmModal(false)" class="w-1/2 py-2.5 rounded-xl font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition">Cancel</button>
+        <button id="confirmModalYesBtn" onclick="closeConfirmModal(true)" class="w-1/2 py-2.5 rounded-xl font-bold bg-red-600 hover:bg-red-500 text-white text-xs shadow-lg transition">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const MEMBERS = ["Sai", "Pavan", "John", "Praveen", "Rakesh"];
+    const DEFAULT_PASSCODES = {
+      "Sai": "sai123",
+      "Pavan": "pavan123",
+      "John": "john123",
+      "Praveen": "praveen123",
+      "Rakesh": "rakesh123"
+    };
+
+    let currentUser = null;
+    let passwords = { ...DEFAULT_PASSCODES };
+    let expenses = [];
+    let googleSheetUrl = "";
+    let activeTab = "home";
+    let confirmResolver = null;
+
+    window.onload = function() {
+      lucide.createIcons();
+      loadStateFromLocalStorage();
+
+      const dateInput = document.getElementById('expDate');
+      if (dateInput) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+      }
+
+      if (currentUser && MEMBERS.includes(currentUser)) {
+        openAppView();
+      } else {
+        openLoginView();
+      }
+    };
+
+    function showToast(message, type = 'info') {
+      const toast = document.getElementById('toastNotification');
+      const msgEl = document.getElementById('toastMessage');
+      const iconEl = document.getElementById('toastIcon');
+      if (!toast || !msgEl) return;
+
+      msgEl.innerText = message;
+      
+      if (type === 'success') {
+        toast.firstElementChild.className = "bg-slate-900 border border-emerald-500/30 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border-l-4 border-l-emerald-500";
+        iconEl.setAttribute('data-lucide', 'check-circle');
+        iconEl.className = "w-5 h-5 text-emerald-400 shrink-0";
+      } else if (type === 'error') {
+        toast.firstElementChild.className = "bg-slate-900 border border-red-500/30 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border-l-4 border-l-red-500";
+        iconEl.setAttribute('data-lucide', 'alert-circle');
+        iconEl.className = "w-5 h-5 text-red-400 shrink-0";
+      } else {
+        toast.firstElementChild.className = "bg-slate-900 border border-brand-500/30 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border-l-4 border-l-brand-500";
+        iconEl.setAttribute('data-lucide', 'info');
+        iconEl.className = "w-5 h-5 text-brand-400 shrink-0";
+      }
+      lucide.createIcons();
+
+      toast.classList.remove('-translate-y-16', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('-translate-y-16', 'opacity-0');
+      }, 2500);
+    }
+
+    function customConfirm(title, message) {
+      return new Promise((resolve) => {
+        document.getElementById('confirmModalTitle').innerText = title;
+        document.getElementById('confirmModalText').innerText = message;
+        document.getElementById('customConfirmModal').classList.remove('hidden');
+        confirmResolver = resolve;
+      });
+    }
+
+    function closeConfirmModal(result) {
+      document.getElementById('customConfirmModal').classList.add('hidden');
+      if (confirmResolver) {
+        confirmResolver(result);
+        confirmResolver = null;
+      }
+    }
+
+    function loadStateFromLocalStorage() {
+      const savedPwds = localStorage.getItem('rm3_mobile_passwords');
+      if (savedPwds) {
+        try { passwords = JSON.parse(savedPwds); } catch(e){}
+      }
+
+      const savedUser = localStorage.getItem('rm3_mobile_user');
+      if (savedUser) {
+        currentUser = savedUser;
+      }
+
+      const savedUrl = localStorage.getItem('rm3_mobile_sheeturl');
+      if (savedUrl) {
+        googleSheetUrl = savedUrl;
+        document.getElementById('sheetUrlInput').value = savedUrl;
+      }
+
+      const savedExpenses = localStorage.getItem('rm3_mobile_expenses');
+      if (savedExpenses) {
+        try { expenses = JSON.parse(savedExpenses); } catch(e){}
+      }
+    }
+
+    function saveStateToLocalStorage() {
+      localStorage.setItem('rm3_mobile_passwords', JSON.stringify(passwords));
+      localStorage.setItem('rm3_mobile_expenses', JSON.stringify(expenses));
+      if (currentUser) {
+        localStorage.setItem('rm3_mobile_user', currentUser);
+      } else {
+        localStorage.removeItem('rm3_mobile_user');
+      }
+      if (googleSheetUrl) {
+        localStorage.setItem('rm3_mobile_sheeturl', googleSheetUrl);
+      }
+    }
+
+    async function handleLogout() {
+      const confirmed = await customConfirm("Log Out of ROOM 3", "All unsynced expenses will be saved to Google Sheets before logging out.");
+      if (!confirmed) return;
+
+      saveStateToLocalStorage();
+      if (googleSheetUrl && expenses.length > 0) {
+        syncAllToSheet();
+      }
+
+      currentUser = null;
+      localStorage.removeItem('rm3_mobile_user');
+      openLoginView();
+      showToast("Logged out successfully!", "info");
+    }
+
+    function syncAllToSheet() {
+      if (!googleSheetUrl) return;
+      expenses.forEach(item => {
+        syncExpenseToSheet(item, 'editExpense');
+      });
+    }
+
+    function openLoginView() {
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('appHeader').classList.add('hidden');
+      document.getElementById('appContent').classList.add('hidden');
+      document.getElementById('bottomNav').classList.add('hidden');
+      document.getElementById('loginPasscode').value = '';
+    }
+
+    function openAppView() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('appHeader').classList.remove('hidden');
+      document.getElementById('appContent').classList.remove('hidden');
+      document.getElementById('bottomNav').classList.remove('hidden');
+
+      document.getElementById('userAvatar').innerText = currentUser.charAt(0);
+      document.getElementById('welcomeText').innerText = `Hello, ${currentUser}!`;
+      document.getElementById('expPaidBy').value = currentUser;
+
+      switchTab('home');
+      renderAppView();
+
+      if (googleSheetUrl) {
+        fetchSheetData();
+      }
+    }
+
+    // Modal Control Functions
+    function openChangePasswordModal() {
+      document.getElementById('currPass').value = '';
+      document.getElementById('newPass').value = '';
+      document.getElementById('confirmPass').value = '';
+      const alertBox = document.getElementById('passModalAlert');
+      alertBox.classList.add('hidden');
+      document.getElementById('changePassModal').classList.remove('hidden');
+    }
+
+    function closeChangePasswordModal() {
+      document.getElementById('changePassModal').classList.add('hidden');
+    }
+
+    function handleChangePassword(e) {
+      e.preventDefault();
+      const curr = document.getElementById('currPass').value;
+      const newP = document.getElementById('newPass').value;
+      const conf = document.getElementById('confirmPass').value;
+      const alertBox = document.getElementById('passModalAlert');
+
+      const activePass = passwords[currentUser] || DEFAULT_PASSCODES[currentUser];
+
+      if (curr !== activePass) {
+        alertBox.className = "text-xs p-2.5 rounded-xl font-medium bg-red-500/10 text-red-400 border border-red-500/20";
+        alertBox.innerText = "Current passcode is incorrect!";
+        alertBox.classList.remove('hidden');
+        return;
+      }
+
+      if (newP !== conf) {
+        alertBox.className = "text-xs p-2.5 rounded-xl font-medium bg-red-500/10 text-red-400 border border-red-500/20";
+        alertBox.innerText = "New passcodes do not match!";
+        alertBox.classList.remove('hidden');
+        return;
+      }
+
+      passwords[currentUser] = newP;
+      saveStateToLocalStorage();
+      closeChangePasswordModal();
+      showToast("Passcode updated successfully!", "success");
+    }
+
+    function openConfigModal() {
+      document.getElementById('sheetUrlInput').value = googleSheetUrl || '';
+      document.getElementById('sheetConfigModal').classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('sheetConfigModal').classList.add('hidden');
+    }
+
+    function selectAllCheckboxes(select) {
+      const checkboxes = document.querySelectorAll('.member-chip');
+      checkboxes.forEach(cb => cb.checked = select);
+    }
+
+    function resetExpenseForm() {
+      document.getElementById('expEditingId').value = '';
+      document.getElementById('expTitle').value = '';
+      document.getElementById('expAmount').value = '';
+      if (currentUser) {
+        document.getElementById('expPaidBy').value = currentUser;
+      }
+      document.getElementById('expDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('formTitle').innerHTML = '<i data-lucide="plus-circle" class="w-5 h-5 text-brand-500"></i> Log Room Expense';
+      document.getElementById('submitBtnText').innerText = 'Save & Split Expense';
+      document.getElementById('cancelEditBtn').classList.add('hidden');
+      selectAllCheckboxes(true);
+      lucide.createIcons();
+    }
+
+    function editExpense(id) {
+      const exp = expenses.find(x => x.id === id);
+      if (!exp) return;
+
+      document.getElementById('expEditingId').value = exp.id;
+      document.getElementById('expTitle').value = exp.title;
+      document.getElementById('expAmount').value = exp.amount;
+      document.getElementById('expPaidBy').value = exp.paidBy;
+      document.getElementById('expDate').value = exp.date;
+
+      const checkboxes = document.querySelectorAll('.member-chip');
+      checkboxes.forEach(cb => {
+        cb.checked = exp.involved && exp.involved.includes(cb.value);
+      });
+
+      document.getElementById('formTitle').innerHTML = '<i data-lucide="edit" class="w-5 h-5 text-amber-500"></i> Edit Room Expense';
+      document.getElementById('submitBtnText').innerText = 'Update Expense';
+      document.getElementById('cancelEditBtn').classList.remove('hidden');
+
+      switchTab('add');
+      lucide.createIcons();
+    }
+
+    function renderAppView() {
+      let roomTotal = 0;
+      const spentMap = {};
+      const shareMap = {};
+
+      MEMBERS.forEach(m => {
+        spentMap[m] = 0;
+        shareMap[m] = 0;
+      });
+
+      expenses.forEach(exp => {
+        const amt = parseFloat(exp.amount) || 0;
+        roomTotal += amt;
+
+        if (spentMap[exp.paidBy] !== undefined) {
+          spentMap[exp.paidBy] += amt;
+        }
+
+        const inv = exp.involved && exp.involved.length > 0 ? exp.involved : MEMBERS;
+        const perPersonShare = amt / inv.length;
+
+        inv.forEach(m => {
+          if (shareMap[m] !== undefined) {
+            shareMap[m] += perPersonShare;
+          }
+        });
+      });
+
+      // Update room totals
+      document.getElementById('roomTotalText').innerText = `₹${roomTotal.toFixed(2)}`;
+      document.getElementById('roomReceiptsCount').innerText = `${expenses.length} Log${expenses.length === 1 ? '' : 's'}`;
+
+      // Update current user stats
+      if (currentUser) {
+        const userSpent = spentMap[currentUser] || 0;
+        const userShare = shareMap[currentUser] || 0;
+        const userNet = userSpent - userShare;
+
+        document.getElementById('userSpentText').innerText = `₹${userSpent.toFixed(2)}`;
+        document.getElementById('userOwedText').innerText = `₹${userShare.toFixed(2)}`;
+
+        const netEl = document.getElementById('userNetStatusText');
+        if (userNet > 0.01) {
+          netEl.innerText = `+₹${userNet.toFixed(2)}`;
+          netEl.className = "text-xs font-extrabold mt-0.5 block text-emerald-400";
+        } else if (userNet < -0.01) {
+          netEl.innerText = `-₹${Math.abs(userNet).toFixed(2)}`;
+          netEl.className = "text-xs font-extrabold mt-0.5 block text-red-400";
+        } else {
+          netEl.innerText = `₹0.00`;
+          netEl.className = "text-xs font-extrabold mt-0.5 block text-slate-400";
+        }
+      }
+
+      // Render member standings list
+      const membersList = document.getElementById('membersSpendingList');
+      if (membersList) {
+        membersList.innerHTML = MEMBERS.map(m => {
+          const s = spentMap[m] || 0;
+          const sh = shareMap[m] || 0;
+          const net = s - sh;
+          const isCurrent = m === currentUser;
+
+          let badgeClass = "text-slate-400 bg-slate-800";
+          let netStr = `₹${Math.abs(net).toFixed(2)}`;
+
+          if (net > 0.01) {
+            badgeClass = "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20";
+            netStr = `+₹${net.toFixed(2)} (Gets Back)`;
+          } else if (net < -0.01) {
+            badgeClass = "text-red-400 bg-red-500/10 border border-red-500/20";
+            netStr = `-₹${Math.abs(net).toFixed(2)} (Owes)`;
+          } else {
+            netStr = "Settled (₹0.00)";
+          }
+
+          return `
+            <div class="flex items-center justify-between p-2.5 rounded-2xl ${isCurrent ? 'bg-brand-500/10 border border-brand-500/30' : 'bg-slate-800/40 border border-slate-800'}">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-xl bg-slate-700 font-bold text-xs flex items-center justify-center text-slate-200">
+                  ${m.charAt(0)}
                 </div>
-
-                <div class="flex items-center gap-2">
-                    <button onclick="toggleTheme()" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center active:scale-95 transition-all">
-                        <i id="theme-icon" class="fa-solid fa-moon text-sm"></i>
-                    </button>
-                    <!-- LOGOUT BUTTON -->
-                    <button onclick="handleLogout()" class="px-3 py-1.5 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all" title="Logout Profile">
-                        <i class="fa-solid fa-power-off text-xs"></i> Logout
-                    </button>
+                <div>
+                  <span class="text-xs font-bold ${isCurrent ? 'text-brand-400' : 'text-slate-200'}">${m} ${isCurrent ? '(You)' : ''}</span>
+                  <span class="block text-[10px] text-slate-400">Spent: ₹${s.toFixed(2)} · Share: ₹${sh.toFixed(2)}</span>
                 </div>
-            </header>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-1 rounded-xl ${badgeClass}">${netStr}</span>
+            </div>
+          `;
+        }).join('');
+      }
 
-            <!-- Scrollable View Area -->
-            <div class="flex-1 overflow-y-auto no-scrollbar pb-safe px-4 pt-4 space-y-4">
+      // Calculate & Render Settlements
+      renderSettlements(spentMap, shareMap);
+    }
 
-                <!-- TAB 1: DASHBOARD / HOME -->
-                <div id="tab-home" class="view-pane space-y-4">
-                    <!-- User Personal Spending Card -->
-                    <div class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 rounded-3xl p-5 text-white shadow-xl relative overflow-hidden">
-                        <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-                        
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-200">You Paid Out-of-Pocket</span>
-                                <div id="home-user-paid" class="text-2xl font-extrabold mt-0.5 tracking-tight">₹0.00</div>
-                            </div>
-                            <span class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-white">
-                                ROOM 3
-                            </span>
-                        </div>
+    function renderSettlements(spentMap, shareMap) {
+      const listEl = document.getElementById('settlementsList');
+      if (!listEl) return;
 
-                        <!-- Owed Share & Net Status -->
-                        <div class="mt-4 pt-3 border-t border-white/15 grid grid-cols-2 gap-2 text-xs">
-                            <div>
-                                <span class="text-indigo-200 text-[10px] block">Your Share (Included Expenses)</span>
-                                <div id="home-user-share" class="font-bold text-white text-sm mt-0.5">₹0.00</div>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-indigo-200 text-[10px] block">Net Balance Status</span>
-                                <div id="home-user-net" class="font-bold text-emerald-300 text-sm mt-0.5">₹0.00</div>
-                            </div>
-                        </div>
-                    </div>
+      const netMap = {};
+      MEMBERS.forEach(m => {
+        netMap[m] = (spentMap[m] || 0) - (shareMap[m] || 0);
+      });
 
-                    <!-- Group Overview Cards -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Group Spend</span>
-                            <div id="home-total-spend" class="text-lg font-bold text-slate-900 dark:text-white mt-1">₹0.00</div>
-                            <span class="text-[10px] text-slate-400">Selective Member Splits</span>
-                        </div>
-                        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Active Entries</span>
-                            <div id="home-total-count" class="text-lg font-bold text-indigo-600 dark:text-indigo-400 mt-1">0 Entries</div>
-                            <span class="text-[10px] text-slate-400">In Expense Ledger</span>
-                        </div>
-                    </div>
+      const debtors = [];
+      const creditors = [];
 
-                    <!-- Member Spending Progress Bars -->
-                    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Paid Out-Of-Pocket By Member</h3>
-                            <span id="home-member-count-badge" class="text-[10px] text-indigo-500 font-bold">0 Members</span>
-                        </div>
-                        <div id="member-spending-list" class="space-y-2.5">
-                            <!-- Dynamically populated -->
-                        </div>
-                    </div>
+      MEMBERS.forEach(m => {
+        const bal = netMap[m];
+        if (bal < -0.01) debtors.push({ name: m, amount: -bal });
+        else if (bal > 0.01) creditors.push({ name: m, amount: bal });
+      });
 
-                    <!-- Category Chart -->
-                    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Category Breakdown</h3>
-                        <div class="h-44 relative flex items-center justify-center">
-                            <canvas id="categoryChart"></canvas>
-                        </div>
-                    </div>
-                </div>
+      const transactions = [];
 
-                <!-- TAB 2: ADD EXPENSE WITH DYNAMIC MEMBER INCLUSION -->
-                <div id="tab-add" class="view-pane hidden space-y-4">
-                    <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                            <h2 class="font-extrabold text-base text-slate-900 dark:text-white flex items-center gap-2">
-                                <i class="fa-solid fa-square-plus text-indigo-600"></i> New Flexible Expense
-                            </h2>
-                            <span class="text-[10px] bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 px-2.5 py-0.5 rounded-full font-bold">ROOM 3</span>
-                        </div>
+      let dIdx = 0;
+      let cIdx = 0;
 
-                        <form id="add-expense-form" onsubmit="handleFormSubmit(event)" class="space-y-3.5">
-                            <div>
-                                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Expense Title</label>
-                                <input type="text" id="exp-title" required placeholder="e.g. Dinner, Snacks, WiFi, Groceries" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            </div>
+      while (dIdx < debtors.length && cIdx < creditors.length) {
+        const debtor = debtors[dIdx];
+        const creditor = creditors[cIdx];
 
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Total Amount (₹)</label>
-                                    <input type="number" step="0.01" min="1" id="exp-amount" required oninput="calculateSplitPreview()" placeholder="0.00" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Paid By</label>
-                                    <select id="exp-paid-by" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-semibold rounded-2xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                        <!-- Dynamically populated with active room members -->
-                                    </select>
-                                </div>
-                            </div>
+        const transfer = Math.min(debtor.amount, creditor.amount);
+        transactions.push({
+          from: debtor.name,
+          to: creditor.name,
+          amount: transfer
+        });
 
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Category</label>
-                                    <select id="exp-category" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-2xl px-3 py-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                        <option value="Groceries">Groceries</option>
-                                        <option value="Rent & Bills">Rent & Bills</option>
-                                        <option value="Food & Dining">Food & Dining</option>
-                                        <option value="Travel">Travel</option>
-                                        <option value="Maintenance">Maintenance</option>
-                                        <option value="Others">Others</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Date</label>
-                                    <input type="date" id="exp-date" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-2xl px-3 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                </div>
-                            </div>
+        debtor.amount -= transfer;
+        creditor.amount -= transfer;
 
-                            <!-- Flexible Included Members Options -->
-                            <div class="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
-                                <div class="flex items-center justify-between">
-                                    <label class="block text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                                        Included Members (Uncheck excluded)
-                                    </label>
-                                    <div class="flex gap-2">
-                                        <button type="button" onclick="selectAllMembers(true)" class="text-[10px] text-indigo-500 hover:underline font-bold">Select All</button>
-                                        <span class="text-[10px] text-slate-400">•</span>
-                                        <button type="button" onclick="selectAllMembers(false)" class="text-[10px] text-slate-400 hover:underline font-bold">Clear All</button>
-                                    </div>
-                                </div>
+        if (debtor.amount < 0.01) dIdx++;
+        if (creditor.amount < 0.01) cIdx++;
+      }
 
-                                <div class="grid grid-cols-2 gap-2" id="member-checkbox-group">
-                                    <!-- Dynamic Checkboxes generated via JS -->
-                                </div>
-                            </div>
+      if (transactions.length === 0) {
+        listEl.innerHTML = `
+          <div class="p-3 text-center rounded-2xl bg-slate-800/30 border border-slate-800 text-slate-400 text-xs">
+            🎉 All accounts are balanced! No settlements needed.
+          </div>
+        `;
+        return;
+      }
 
-                            <!-- Live Split Calculation Card -->
-                            <div class="bg-indigo-50/70 dark:bg-indigo-950/40 p-3 rounded-2xl border border-indigo-100 dark:border-indigo-900/40 text-xs flex justify-between items-center">
-                                <div>
-                                    <span class="text-slate-500 dark:text-slate-400 font-medium text-[11px] block">Calculated Share Per Included Person</span>
-                                    <span id="preview-count-text" class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">0 Members Included</span>
-                                </div>
-                                <span id="preview-share-amount" class="font-extrabold text-indigo-600 dark:text-indigo-400 text-base">₹0.00</span>
-                            </div>
+      listEl.innerHTML = transactions.map(t => `
+        <div class="flex items-center justify-between p-2.5 rounded-2xl bg-slate-800/50 border border-slate-800">
+          <div class="flex items-center space-x-2 text-xs font-semibold text-slate-300">
+            <span class="text-slate-100 font-bold">${t.from}</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span class="text-slate-100 font-bold">${t.to}</span>
+          </div>
+          <span class="text-xs font-black text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-lg border border-amber-400/20">
+            ₹${t.amount.toFixed(2)}
+          </span>
+        </div>
+      `).join('');
 
-                            <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 text-white font-extrabold py-3.5 rounded-2xl shadow-float-glow active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-paper-plane"></i> Add Expense Entry
-                            </button>
-                        </form>
-                    </div>
-                </div>
+      lucide.createIcons();
+    }
 
-                <!-- TAB 3: HISTORY & EXPENSE DELETION -->
-                <div id="tab-history" class="view-pane hidden space-y-3">
-                    <div class="space-y-2">
-                        <div class="relative">
-                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
-                            <input type="text" id="history-search" oninput="filterHistoryFeed()" placeholder="Search description or category..." class="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        </div>
-                        <div class="flex gap-2">
-                            <select id="history-filter-payer" onchange="filterHistoryFeed()" class="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-2 text-xs rounded-xl focus:outline-none">
-                                <option value="ALL">All Paid By</option>
-                            </select>
-                            <select id="history-filter-user" onchange="filterHistoryFeed()" class="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-2 text-xs rounded-xl focus:outline-none">
-                                <option value="ALL">All Involvement</option>
-                                <option value="INCLUDED">I am Included</option>
-                                <option value="EXCLUDED">I am Excluded</option>
-                            </select>
-                        </div>
-                    </div>
+    function renderLogsTab() {
+      const container = document.getElementById('expensesLogsList');
+      const emptyState = document.getElementById('emptyLogState');
+      const countBadge = document.getElementById('logCountBadge');
+      const query = (document.getElementById('logSearchInput')?.value || '').toLowerCase().trim();
 
-                    <div id="history-feed" class="space-y-2.5">
-                        <!-- Dynamically Populated History Items with Delete Option -->
-                    </div>
-                </div>
+      if (!container) return;
 
-                <!-- TAB 4: ROOM MEMBERS MANAGEMENT (ADD/DELETE ROOM MEMBERS) -->
-                <div id="tab-members" class="view-pane hidden space-y-4">
-                    <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                            <h2 class="font-extrabold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                                <i class="fa-solid fa-users text-indigo-600"></i> Manage Room Members
-                            </h2>
-                            <button onclick="openAddMemberModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 active:scale-95 transition-all">
-                                <i class="fa-solid fa-user-plus text-[10px]"></i> Add Member
-                            </button>
-                        </div>
+      const filtered = expenses.filter(exp => {
+        const matchesTitle = exp.title.toLowerCase().includes(query);
+        const matchesPayer = exp.paidBy.toLowerCase().includes(query);
+        return matchesTitle || matchesPayer;
+      });
 
-                        <div class="space-y-2.5" id="members-management-list">
-                            <!-- Dynamic list of members with Delete buttons -->
-                        </div>
-                    </div>
+      if (countBadge) countBadge.innerText = `${filtered.length} Entr${filtered.length === 1 ? 'y' : 'ies'}`;
 
-                    <!-- Settlements & Standings Card -->
-                    <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                            <h3 class="font-extrabold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
-                                <i class="fa-solid fa-scale-balanced text-indigo-600"></i> Suggested Debt Transfers
-                            </h3>
-                            <span class="text-[10px] text-emerald-500 font-bold">Auto-Calculated</span>
-                        </div>
-                        <div id="suggested-settlements" class="space-y-2">
-                            <!-- Dynamic Transfers -->
-                        </div>
-                    </div>
-                </div>
+      if (filtered.length === 0) {
+        container.innerHTML = '';
+        if (emptyState) emptyState.classList.remove('hidden');
+        return;
+      }
 
-                <!-- TAB 5: GOOGLE SHEETS SYNC & SYSTEM SETTINGS -->
-                <div id="tab-sync" class="view-pane hidden space-y-4">
-                    <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                            <h2 class="font-extrabold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                                <i class="fa-solid fa-cloud-arrow-up text-indigo-600"></i> Google Sheets Data Sync
-                            </h2>
-                            <span id="sync-badge" class="text-[10px] bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full font-bold">
-                                Local / Offline
-                            </span>
-                        </div>
+      if (emptyState) emptyState.classList.add('hidden');
 
-                        <div class="space-y-3">
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Apps Script Web App Endpoint URL</label>
-                            <input type="url" id="sheet-url-input" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-2xl px-3.5 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono">
-                            
-                            <div class="flex gap-2">
-                                <button onclick="saveSheetUrl()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl text-xs active:scale-95 transition-all shadow-md">
-                                    Save Web App URL
-                                </button>
-                                <button onclick="pullFromGoogleSheets()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-2xl text-xs active:scale-95 transition-all shadow-md flex items-center justify-center gap-1.5">
-                                    <i class="fa-solid fa-rotate"></i> Sync Sheet
-                                </button>
-                            </div>
-                        </div>
+      container.innerHTML = filtered.map(exp => {
+        const invList = exp.involved && exp.involved.length > 0 ? exp.involved.join(', ') : 'All Members';
 
-                        <!-- Code Copy Block for Google Sheets -->
-                        <div class="space-y-2">
-                            <div class="flex justify-between items-center">
-                                <span class="text-[10px] font-bold uppercase text-slate-400">Google Apps Script Code (Copy into Apps Script)</span>
-                                <button onclick="copyScriptCode()" class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1">
-                                    <i class="fa-solid fa-copy"></i> Copy Code
-                                </button>
-                            </div>
-                            <pre id="script-code-block" class="bg-slate-950 text-slate-300 p-3 rounded-2xl text-[10px] font-mono leading-relaxed overflow-x-auto border border-slate-800">
-function doGet(e) {
+        return `
+          <div class="p-3.5 rounded-2xl bg-slate-800/60 dark:bg-slate-800/60 bg-slate-100 border border-slate-700/60 dark:border-slate-700/60 border-slate-300 space-y-2">
+            <div class="flex items-start justify-between">
+              <div>
+                <h4 class="text-sm font-bold text-slate-100 dark:text-slate-100 text-slate-900">${escapeHtml(exp.title)}</h4>
+                <p class="text-[10px] text-slate-400 font-medium">Paid by <b class="text-brand-400">${escapeHtml(exp.paidBy)}</b> on ${exp.date}</p>
+              </div>
+              <span class="text-base font-black text-emerald-400">₹${parseFloat(exp.amount).toFixed(2)}</span>
+            </div>
+
+            <div class="pt-2 border-t border-slate-700/40 dark:border-slate-700/40 border-slate-200 flex items-center justify-between">
+              <span class="text-[10px] text-slate-400 truncate max-w-[200px]" title="${escapeHtml(invList)}">
+                Split (${exp.involved ? exp.involved.length : 5}): <b class="text-slate-300">${escapeHtml(invList)}</b>
+              </span>
+              <div class="flex items-center gap-1">
+                <button onclick="editExpense('${exp.id}')" title="Edit" class="p-1.5 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-amber-400 transition">
+                  <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                </button>
+                <button onclick="deleteExpense('${exp.id}')" title="Delete" class="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function switchTab(tab) {
+      activeTab = tab;
+      
+      document.getElementById('tabHome').classList.add('hidden');
+      document.getElementById('tabAdd').classList.add('hidden');
+      document.getElementById('tabLogs').classList.add('hidden');
+
+      const navHomeBtn = document.getElementById('navHomeBtn');
+      const navAddBtn = document.getElementById('navAddBtn');
+      const navLogsBtn = document.getElementById('navLogsBtn');
+
+      navHomeBtn.className = "flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-slate-400 font-medium transition active:scale-90";
+      navAddBtn.className = "flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-slate-400 font-medium transition active:scale-90";
+      navLogsBtn.className = "flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-slate-400 font-medium transition active:scale-90";
+
+      if (tab === 'home') {
+        document.getElementById('tabHome').classList.remove('hidden');
+        navHomeBtn.className = "flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-brand-500 font-bold transition active:scale-90";
+      } else if (tab === 'add') {
+        document.getElementById('tabAdd').classList.remove('hidden');
+        navAddBtn.className = "flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-brand-500 font-bold transition active:scale-90";
+      } else if (tab === 'logs') {
+        document.getElementById('tabLogs').classList.remove('hidden');
+        navLogsBtn.className = "flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-brand-500 font-bold transition active:scale-90";
+        renderLogsTab();
+      }
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const member = document.getElementById('loginMember').value;
+      const passcode = document.getElementById('loginPasscode').value;
+      const errorBox = document.getElementById('loginErrorMsg');
+
+      if (!member) return;
+
+      const validPass = passwords[member] || DEFAULT_PASSCODES[member];
+
+      if (passcode === validPass) {
+        currentUser = member;
+        saveStateToLocalStorage();
+        errorBox.classList.add('hidden');
+        document.getElementById('loginPasscode').value = '';
+        openAppView();
+        showToast(`Welcome back, ${member}!`, "success");
+      } else {
+        document.getElementById('loginErrorText').innerText = "Incorrect passcode!";
+        errorBox.classList.remove('hidden');
+      }
+    }
+
+    function handleAddExpense(e) {
+      e.preventDefault();
+      const editingId = document.getElementById('expEditingId').value;
+      const title = document.getElementById('expTitle').value.trim();
+      const amount = parseFloat(document.getElementById('expAmount').value);
+      const paidBy = document.getElementById('expPaidBy').value;
+      const date = document.getElementById('expDate').value;
+
+      const selectedInvolved = Array.from(document.querySelectorAll('.member-chip:checked')).map(cb => cb.value);
+
+      if (selectedInvolved.length === 0) {
+        showToast("Select at least 1 member involved in this expense.", "error");
+        return;
+      }
+
+      if (editingId) {
+        // Edit existing expense
+        const idx = expenses.findIndex(x => x.id === editingId);
+        if (idx !== -1) {
+          expenses[idx] = { id: editingId, title, amount, paidBy, date, involved: selectedInvolved };
+          if (googleSheetUrl) syncExpenseToSheet(expenses[idx], 'editExpense');
+        }
+        showToast("Expense updated & saved!", "success");
+      } else {
+        // Create new expense
+        const newExpense = {
+          id: 'exp_' + Date.now(),
+          title,
+          amount,
+          paidBy,
+          date,
+          involved: selectedInvolved
+        };
+        expenses.unshift(newExpense);
+        if (googleSheetUrl) syncExpenseToSheet(newExpense, 'addExpense');
+        showToast("New expense added & saved!", "success");
+      }
+
+      saveStateToLocalStorage();
+      resetExpenseForm();
+
+      renderAppView();
+      switchTab('home');
+    }
+
+    async function deleteExpense(id) {
+      const targetExp = expenses.find(x => x.id === id);
+      if (!targetExp) return;
+
+      const confirmed = await customConfirm(
+        "Delete Expense?",
+        `Delete "${targetExp.title}" (₹${targetExp.amount.toFixed(2)})? This will also remove it from Google Sheets.`
+      );
+
+      if (confirmed) {
+        expenses = expenses.filter(x => x.id !== id);
+        saveStateToLocalStorage();
+        
+        renderAppView();
+        if (activeTab === 'logs') renderLogsTab();
+
+        if (googleSheetUrl) {
+          deleteExpenseFromSheet(id);
+        }
+        showToast("Expense deleted from Sheets!", "success");
+      }
+    }
+
+    function saveSheetUrl() {
+      const url = document.getElementById('sheetUrlInput').value.trim();
+      if (url && !url.startsWith('https://script.google.com/')) {
+        showToast("Invalid URL! Must start with https://script.google.com/", "error");
+        return;
+      }
+      googleSheetUrl = url;
+      saveStateToLocalStorage();
+      
+      if (googleSheetUrl) {
+        showToast("Google Sheet Endpoint Saved!", "success");
+        closeConfigModal();
+        fetchSheetData();
+      } else {
+        showToast("Google Sheet Endpoint Cleared", "info");
+        closeConfigModal();
+      }
+    }
+
+    function copyAppsScriptTemplate() {
+      const scriptCode = `function doGet(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   var data = sheet.getDataRange().getValues();
   var result = [];
   for (var i = 1; i < data.length; i++) {
-    result.push({
-      id: data[i][0],
-      date: data[i][1],
-      title: data[i][2],
-      category: data[i][3],
-      paidBy: data[i][4],
-      amount: data[i][5],
-      includedMembers: data[i][6] ? data[i][6].split(",") : []
-    });
+    if (data[i][0]) {
+      result.push({
+        id: data[i][0],
+        title: data[i][1],
+        amount: data[i][2],
+        paidBy: data[i][3],
+        date: data[i][4],
+        involved: data[i][5]
+      });
+    }
   }
   return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var data = JSON.parse(e.postData.contents);
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(["ID", "Date", "Title", "Category", "Paid By", "Amount", "Included Members"]);
+  var body = JSON.parse(e.postData.contents);
+  
+  if (body.action === "deleteExpense") {
+    var data = sheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][0] == body.id) {
+        sheet.deleteRow(i + 1);
+        break;
+      }
+    }
+  } else if (body.action === "editExpense") {
+    var data = sheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][0] == body.id) {
+        sheet.getRange(i + 1, 2, 1, 5).setValues([[body.title, body.amount, body.paidBy, body.date, body.involved]]);
+        break;
+      }
+    }
+  } else {
+    sheet.appendRow([body.id, body.title, body.amount, body.paidBy, body.date, body.involved]);
   }
-  sheet.appendRow([data.id, data.date, data.title, data.category, data.paidBy, data.amount, data.includedMembers.join(",")]);
-  return ContentService.createTextOutput(JSON.stringify({"result": "success"})).setMimeType(ContentService.MimeType.JSON);
-}</pre>
-                        </div>
+  
+  return ContentService.createTextOutput(JSON.stringify({status: "success"})).setMimeType(ContentService.MimeType.JSON);
+}`;
 
-                        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between gap-2">
-                            <button onclick="resetDefaultData()" class="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-2.5 rounded-xl text-[11px] font-bold active:scale-95 transition-all">
-                                Reset Demo Data
-                            </button>
-                            <button onclick="clearAllExpenses()" class="flex-1 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 py-2.5 rounded-xl text-[11px] font-bold active:scale-95 transition-all">
-                                Clear Local Ledger
-                            </button>
-                        </div>
-                    </div>
-                </div>
+      const tempInput = document.createElement('textarea');
+      tempInput.value = scriptCode;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
 
-            </div>
+      showToast("Apps Script template copied to clipboard!", "success");
+    }
 
-            <!-- Bottom Navigation Bar -->
-            <nav class="glass-nav absolute bottom-0 left-0 right-0 z-40 border-t border-slate-200/80 dark:border-slate-800/80 px-2 py-2 shadow-tab-bar">
-                <div class="flex items-center justify-around">
-                    <button onclick="switchTab('home')" id="btn-tab-home" class="tab-nav-btn flex flex-col items-center gap-1 p-2 rounded-2xl text-indigo-600 dark:text-indigo-400 transition-all">
-                        <i class="fa-solid fa-chart-pie text-base"></i>
-                        <span class="text-[10px] font-bold">Home</span>
-                    </button>
-                    <button onclick="switchTab('add')" id="btn-tab-add" class="tab-nav-btn flex flex-col items-center gap-1 p-2 rounded-2xl text-slate-400 transition-all">
-                        <i class="fa-solid fa-plus-circle text-base"></i>
-                        <span class="text-[10px] font-bold">Add</span>
-                    </button>
-                    <button onclick="switchTab('history')" id="btn-tab-history" class="tab-nav-btn flex flex-col items-center gap-1 p-2 rounded-2xl text-slate-400 transition-all">
-                        <i class="fa-solid fa-receipt text-base"></i>
-                        <span class="text-[10px] font-bold">History</span>
-                    </button>
-                    <button onclick="switchTab('members')" id="btn-tab-members" class="tab-nav-btn flex flex-col items-center gap-1 p-2 rounded-2xl text-slate-400 transition-all">
-                        <i class="fa-solid fa-users text-base"></i>
-                        <span class="text-[10px] font-bold">Members</span>
-                    </button>
-                    <button onclick="switchTab('sync')" id="btn-tab-sync" class="tab-nav-btn flex flex-col items-center gap-1 p-2 rounded-2xl text-slate-400 transition-all">
-                        <i class="fa-solid fa-cloud-arrow-up text-base"></i>
-                        <span class="text-[10px] font-bold">Sync</span>
-                    </button>
-                </div>
-            </nav>
-        </div>
-    </div>
+    function fetchSheetData() {
+      if (!googleSheetUrl || !googleSheetUrl.startsWith('https://script.google.com/')) return;
 
-    <!-- MODAL: ADD NEW ROOM MEMBER -->
-    <div id="add-member-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 max-w-xs w-full shadow-2xl space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-user-plus text-indigo-600"></i> Add Room Member
-                </h3>
-                <button onclick="closeAddMemberModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Member Name</label>
-                    <input type="text" id="new-member-name" placeholder="Enter name" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">4-Digit PIN Password</label>
-                    <input type="password" maxlength="4" pattern="[0-9]*" inputmode="numeric" id="new-member-pin" placeholder="1234" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-3 py-2.5 text-center text-lg tracking-widest font-bold text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-            </div>
+      const refreshIcon = document.getElementById('refreshIcon');
+      if (refreshIcon) refreshIcon.classList.add('animate-spin');
 
-            <div class="flex gap-2 pt-2">
-                <button onclick="closeAddMemberModal()" class="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 py-2.5 rounded-xl text-xs font-bold">Cancel</button>
-                <button onclick="saveNewRoomMember()" class="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl text-xs font-bold">Add Member</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: PIN DIRECTORY -->
-    <div id="pin-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 max-w-xs w-full shadow-2xl text-white space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                <h3 class="font-bold text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-key text-indigo-400"></i> ROOM 3 PIN Directory
-                </h3>
-                <button onclick="closePinModal()" class="text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="space-y-1.5 text-xs max-h-60 overflow-y-auto no-scrollbar" id="pin-directory-list">
-                <!-- Dynamically populated PIN list -->
-            </div>
-            <button onclick="closePinModal()" class="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl text-xs">Close Directory</button>
-        </div>
-    </div>
-
-    <!-- APPLICATION LOGIC & STATE HANDLING -->
-    <script>
-        // Initial Default Room Members & Passwords
-        const DEFAULT_MEMBERS = [
-            { name: 'Sai', pin: '1111' },
-            { name: 'Pavan', pin: '2222' },
-            { name: 'John', pin: '3333' },
-            { name: 'Praveen', pin: '4444' },
-            { name: 'Rakesh', pin: '5555' }
-        ];
-
-        // State Variables
-        let roomMembers = [];
-        let currentUser = null;
-        let expenses = [];
-        let sheetEndpoint = "";
-        let chartInstance = null;
-
-        // On App Load
-        window.addEventListener('DOMContentLoaded', () => {
-            loadLocalState();
-            document.getElementById('exp-date').valueAsDate = new Date();
-
-            if (currentUser && roomMembers.some(m => m.name === currentUser)) {
-                showMainApp();
-            } else {
-                showLoginScreen();
-            }
+      fetch(googleSheetUrl)
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+          return res.json();
+        })
+        .then(data => {
+          if (Array.isArray(data)) {
+            expenses = data.map((row, idx) => ({
+              id: row.id || 'sheet_' + idx + '_' + Date.now(),
+              title: row.title || 'Expense',
+              amount: parseFloat(row.amount) || 0,
+              paidBy: row.paidBy || 'Sai',
+              date: row.date || new Date().toISOString().split('T')[0],
+              involved: typeof row.involved === 'string' ? row.involved.split(',').map(s => s.trim()) : (row.involved || MEMBERS)
+            }));
+            saveStateToLocalStorage();
+            renderAppView();
+            if (activeTab === 'logs') renderLogsTab();
+            showToast("Synced from Google Sheets!", "success");
+          }
+        })
+        .catch(err => {
+          console.warn("Sheets Fetch Notice:", err);
+          showToast("Sync failed: Set Web App access to 'Anyone' in Apps Script", "error");
+        })
+        .finally(() => {
+          if (refreshIcon) refreshIcon.classList.remove('animate-spin');
         });
-
-        function loadLocalState() {
-            // Load Room Members
-            const savedMembers = localStorage.getItem('room3_active_members');
-            if (savedMembers) {
-                try { roomMembers = JSON.parse(savedMembers); } catch(e) { roomMembers = DEFAULT_MEMBERS; }
-            } else {
-                roomMembers = [...DEFAULT_MEMBERS];
-                saveRoomMembers();
-            }
-
-            // Load Saved Session
-            const savedUser = localStorage.getItem('room3_user');
-            if (savedUser && roomMembers.some(m => m.name === savedUser)) {
-                currentUser = savedUser;
-            }
-
-            // Load Expenses
-            const savedExps = localStorage.getItem('room3_flexible_expenses');
-            if (savedExps) {
-                try { expenses = JSON.parse(savedExps); } catch(e) { expenses = []; }
-            } else {
-                // Initial demo expense entries showing dynamic member inclusion
-                expenses = [
-                    { 
-                        id: 'exp-101', 
-                        title: 'Dinner at Restaurant', 
-                        amount: 1500, 
-                        paidBy: 'Sai', 
-                        category: 'Food & Dining', 
-                        date: '2026-09-20',
-                        includedMembers: ['Sai', 'Pavan', 'John'], // Only 3 members included
-                        shares: { 'Sai': 500, 'Pavan': 500, 'John': 500 }
-                    },
-                    { 
-                        id: 'exp-102', 
-                        title: 'WiFi Monthly Bill', 
-                        amount: 1000, 
-                        paidBy: 'Pavan', 
-                        category: 'Rent & Bills', 
-                        date: '2026-09-22',
-                        includedMembers: ['Sai', 'Pavan', 'John', 'Praveen', 'Rakesh'], // All included
-                        shares: { 'Sai': 200, 'Pavan': 200, 'John': 200, 'Praveen': 200, 'Rakesh': 200 }
-                    }
-                ];
-                saveExpenses();
-            }
-
-            sheetEndpoint = localStorage.getItem('room3_sheet_url') || "";
-            const urlInput = document.getElementById('sheet-url-input');
-            if (urlInput) urlInput.value = sheetEndpoint;
-            updateSyncBadge();
-
-            populateLoginDropdown();
-        }
-
-        function saveRoomMembers() {
-            localStorage.setItem('room3_active_members', JSON.stringify(roomMembers));
-            populateLoginDropdown();
-            renderMembersManagementList();
-            renderCheckboxGroup();
-        }
-
-        function saveExpenses() {
-            localStorage.setItem('room3_flexible_expenses', JSON.stringify(expenses));
-        }
-
-        function populateLoginDropdown() {
-            const select = document.getElementById('login-member');
-            select.innerHTML = `<option value="" disabled selected>-- Choose Profile --</option>`;
-            
-            roomMembers.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m.name;
-                opt.textContent = `${m.name} (PIN: ${m.pin})`;
-                select.appendChild(opt);
-            });
-
-            // Update Paid By select in Add Expense Form
-            const paidBySelect = document.getElementById('exp-paid-by');
-            if (paidBySelect) {
-                paidBySelect.innerHTML = '';
-                roomMembers.forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = m.name;
-                    opt.textContent = m.name;
-                    paidBySelect.appendChild(opt);
-                });
-            }
-
-            // Update Payer filter in History
-            const filterPayer = document.getElementById('history-filter-payer');
-            if (filterPayer) {
-                filterPayer.innerHTML = `<option value="ALL">All Paid By</option>`;
-                roomMembers.forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = m.name;
-                    opt.textContent = m.name;
-                    filterPayer.appendChild(opt);
-                });
-            }
-        }
-
-        // Login System
-        function handleLogin() {
-            const memberName = document.getElementById('login-member').value;
-            const pin = document.getElementById('login-pin').value.trim();
-
-            if (!memberName) {
-                showToast('Please select a member profile.', 'error');
-                return;
-            }
-
-            const memberObj = roomMembers.find(m => m.name === memberName);
-            if (memberObj && memberObj.pin === pin) {
-                currentUser = memberName;
-                localStorage.setItem('room3_user', currentUser);
-                showToast(`Logged in as ${currentUser}`, 'success');
-                showMainApp();
-            } else {
-                showToast('Invalid PIN password!', 'error');
-            }
-        }
-
-        function handleLogout() {
-            currentUser = null;
-            localStorage.removeItem('room3_user');
-            document.getElementById('login-pin').value = '';
-            showLoginScreen();
-            showToast('Logged out of session.', 'info');
-        }
-
-        function showLoginScreen() {
-            document.getElementById('view-login').classList.remove('hidden');
-            document.getElementById('app-main').classList.add('hidden');
-        }
-
-        function showMainApp() {
-            document.getElementById('view-login').classList.add('hidden');
-            document.getElementById('app-main').classList.remove('hidden');
-
-            document.getElementById('nav-username').textContent = currentUser;
-            document.getElementById('nav-avatar').textContent = currentUser.charAt(0);
-            
-            const expPaidBy = document.getElementById('exp-paid-by');
-            if (expPaidBy) expPaidBy.value = currentUser;
-
-            renderCheckboxGroup();
-            switchTab('home');
-        }
-
-        function switchTab(tabName) {
-            const panes = document.querySelectorAll('.view-pane');
-            panes.forEach(p => p.classList.add('hidden'));
-
-            const selectedPane = document.getElementById(`tab-${tabName}`);
-            if (selectedPane) selectedPane.classList.remove('hidden');
-
-            const btns = document.querySelectorAll('.tab-nav-btn');
-            btns.forEach(b => {
-                b.classList.remove('text-indigo-600', 'dark:text-indigo-400');
-                b.classList.add('text-slate-400');
-            });
-
-            const activeBtn = document.getElementById(`btn-tab-${tabName}`);
-            if (activeBtn) {
-                activeBtn.classList.remove('text-slate-400');
-                activeBtn.classList.add('text-indigo-600', 'dark:text-indigo-400');
-            }
-
-            if (tabName === 'home') renderHomeTab();
-            if (tabName === 'history') filterHistoryFeed();
-            if (tabName === 'members') renderMembersTab();
-        }
-
-        // Checkbox Group rendering for Dynamic Member Selection
-        function renderCheckboxGroup() {
-            const container = document.getElementById('member-checkbox-group');
-            if (!container) return;
-            container.innerHTML = '';
-
-            roomMembers.forEach(m => {
-                const label = document.createElement('label');
-                label.className = 'flex items-center gap-2 p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 cursor-pointer select-none text-xs font-semibold';
-                label.innerHTML = `
-                    <input type="checkbox" value="${m.name}" checked onchange="calculateSplitPreview()" class="member-chk w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 accent-indigo-600">
-                    <span class="text-slate-800 dark:text-slate-200">${m.name}</span>
-                `;
-                container.appendChild(label);
-            });
-            calculateSplitPreview();
-        }
-
-        function selectAllMembers(status) {
-            const chks = document.querySelectorAll('.member-chk');
-            chks.forEach(c => c.checked = status);
-            calculateSplitPreview();
-        }
-
-        function getSelectedMembers() {
-            const chks = document.querySelectorAll('.member-chk:checked');
-            return Array.from(chks).map(c => c.value);
-        }
-
-        function calculateSplitPreview() {
-            const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
-            const selected = getSelectedMembers();
-            const previewShare = document.getElementById('preview-share-amount');
-            const previewCount = document.getElementById('preview-count-text');
-
-            previewCount.textContent = `${selected.length} Member(s) Included`;
-
-            if (selected.length === 0 || amount <= 0) {
-                previewShare.textContent = '₹0.00';
-                return;
-            }
-
-            const share = (amount / selected.length).toFixed(2);
-            previewShare.textContent = `₹${share} / person`;
-        }
-
-        function handleFormSubmit(event) {
-            event.preventDefault();
-
-            const title = document.getElementById('exp-title').value.trim();
-            const amount = parseFloat(document.getElementById('exp-amount').value);
-            const paidBy = document.getElementById('exp-paid-by').value;
-            const category = document.getElementById('exp-category').value;
-            const date = document.getElementById('exp-date').value;
-            const includedMembers = getSelectedMembers();
-
-            if (!title || isNaN(amount) || amount <= 0) {
-                showToast('Enter valid expense title and amount.', 'error');
-                return;
-            }
-
-            if (includedMembers.length === 0) {
-                showToast('Select at least 1 member included in this expense!', 'error');
-                return;
-            }
-
-            let shares = {};
-            const sharePerPerson = amount / includedMembers.length;
-            includedMembers.forEach(m => shares[m] = sharePerPerson);
-
-            const newExpense = {
-                id: 'exp-' + Date.now(),
-                title,
-                amount,
-                paidBy,
-                category,
-                date,
-                includedMembers,
-                shares
-            };
-
-            expenses.unshift(newExpense);
-            saveExpenses();
-
-            document.getElementById('add-expense-form').reset();
-            document.getElementById('exp-date').valueAsDate = new Date();
-            document.getElementById('exp-paid-by').value = currentUser;
-            selectAllMembers(true);
-
-            showToast('Expense Added Successfully!', 'success');
-
-            if (sheetEndpoint) {
-                syncToGoogleSheets(newExpense);
-            }
-
-            switchTab('home');
-        }
-
-        // Expense Deletion Logic
-        function deleteExpense(expId) {
-            if (!confirm('Are you sure you want to delete this expense?')) return;
-
-            expenses = expenses.filter(e => e.id !== expId);
-            saveExpenses();
-
-            showToast('Expense entry deleted.', 'info');
-            filterHistoryFeed();
-            renderHomeTab();
-        }
-
-        // Render Home Dashboard
-        function renderHomeTab() {
-            let totalGroupSpend = 0;
-            let userPaidTotal = 0;
-            let userShareTotal = 0;
-
-            expenses.forEach(exp => {
-                totalGroupSpend += parseFloat(exp.amount);
-
-                if (exp.paidBy === currentUser) {
-                    userPaidTotal += parseFloat(exp.amount);
-                }
-
-                if (exp.shares && exp.shares[currentUser]) {
-                    userShareTotal += parseFloat(exp.shares[currentUser]);
-                }
-            });
-
-            const netBalance = userPaidTotal - userShareTotal;
-
-            document.getElementById('home-user-paid').textContent = `₹${userPaidTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-            document.getElementById('home-user-share').textContent = `₹${userShareTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-            
-            const netEl = document.getElementById('home-user-net');
-            if (netBalance > 0.01) {
-                netEl.textContent = `+₹${netBalance.toFixed(2)} (Gets Back)`;
-                netEl.className = 'font-bold text-emerald-300 text-sm mt-0.5';
-            } else if (netBalance < -0.01) {
-                netEl.textContent = `-₹${Math.abs(netBalance).toFixed(2)} (Owes)`;
-                netEl.className = 'font-bold text-rose-300 text-sm mt-0.5';
-            } else {
-                netEl.textContent = `₹0.00 (Settled)`;
-                netEl.className = 'font-bold text-slate-200 text-sm mt-0.5';
-            }
-
-            document.getElementById('home-total-spend').textContent = `₹${totalGroupSpend.toLocaleString('en-IN', { minimumFractionDigits: 0 })}`;
-            document.getElementById('home-total-count').textContent = `${expenses.length} Entries`;
-            document.getElementById('home-member-count-badge').textContent = `${roomMembers.length} Active Members`;
-
-            renderMemberSpendingBars(totalGroupSpend);
-            renderCategoryChart();
-        }
-
-        function renderMemberSpendingBars(totalSpend) {
-            const container = document.getElementById('member-spending-list');
-            container.innerHTML = '';
-
-            roomMembers.forEach(m => {
-                const paid = expenses
-                    .filter(e => e.paidBy === m.name)
-                    .reduce((sum, e) => sum + parseFloat(e.amount), 0);
-
-                const percent = totalSpend > 0 ? ((paid / totalSpend) * 100).toFixed(0) : 0;
-                const isUser = m.name === currentUser;
-
-                const row = document.createElement('div');
-                row.className = 'space-y-1';
-                row.innerHTML = `
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                            ${m.name} ${isUser ? '<span class="text-[9px] bg-indigo-600 text-white font-bold px-1.5 rounded-full">You</span>' : ''}
-                        </span>
-                        <span class="font-bold text-slate-600 dark:text-slate-400">₹${paid} <span class="text-[10px] text-slate-400">(${percent}%)</span></span>
-                    </div>
-                    <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                        <div class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 h-2 rounded-full" style="width: ${percent}%"></div>
-                    </div>
-                `;
-                container.appendChild(row);
-            });
-        }
-
-        function renderCategoryChart() {
-            const ctx = document.getElementById('categoryChart').getContext('2d');
-
-            const cats = {};
-            expenses.forEach(e => {
-                cats[e.category] = (cats[e.category] || 0) + parseFloat(e.amount);
-            });
-
-            const labels = Object.keys(cats);
-            const data = Object.values(cats);
-
-            if (chartInstance) chartInstance.destroy();
-            if (labels.length === 0) return;
-
-            chartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: ['#6366f1', '#a855f7', '#ec4899', '#3b82f6', '#10b981', '#f59e0b'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { boxWidth: 10, font: { size: 10 } }
-                        }
-                    },
-                    cutout: '70%'
-                }
-            });
-        }
-
-        // Filter and Render History Feed with Delete Button
-        function filterHistoryFeed() {
-            const query = document.getElementById('history-search').value.toLowerCase();
-            const payerFilter = document.getElementById('history-filter-payer').value;
-            const userFilter = document.getElementById('history-filter-user').value;
-
-            const filtered = expenses.filter(exp => {
-                const matchQuery = exp.title.toLowerCase().includes(query) || exp.category.toLowerCase().includes(query);
-                const matchPayer = payerFilter === 'ALL' || exp.paidBy === payerFilter;
-                
-                let matchUser = true;
-                const isIncluded = exp.includedMembers && exp.includedMembers.includes(currentUser);
-                if (userFilter === 'INCLUDED') matchUser = isIncluded;
-                if (userFilter === 'EXCLUDED') matchUser = !isIncluded;
-
-                return matchQuery && matchPayer && matchUser;
-            });
-
-            const feed = document.getElementById('history-feed');
-            feed.innerHTML = '';
-
-            if (filtered.length === 0) {
-                feed.innerHTML = `<div class="p-8 text-center text-xs text-slate-400">No matching expense entries found.</div>`;
-                return;
-            }
-
-            filtered.forEach(exp => {
-                const isIncluded = exp.includedMembers && exp.includedMembers.includes(currentUser);
-                const userShare = (exp.shares && exp.shares[currentUser]) ? exp.shares[currentUser] : 0;
-
-                const card = document.createElement('div');
-                card.className = 'bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2 relative group';
-                
-                const memberBadges = exp.includedMembers.map(m => {
-                    const isSelf = m === currentUser;
-                    return `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${isSelf ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}">${m}</span>`;
-                }).join(' ');
-
-                card.innerHTML = `
-                    <div class="flex items-start justify-between gap-2">
-                        <div>
-                            <div class="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
-                                ${exp.title}
-                                ${!isIncluded ? '<span class="text-[9px] bg-rose-500/10 text-rose-500 px-1.5 rounded font-bold">You Excluded</span>' : ''}
-                            </div>
-                            <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
-                                <span>${exp.date}</span>
-                                <span>•</span>
-                                <span>${exp.category}</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="text-right">
-                                <div class="font-extrabold text-sm text-emerald-600 dark:text-emerald-400">₹${parseFloat(exp.amount).toFixed(2)}</div>
-                                <div class="text-[10px] text-slate-400">Paid by <strong class="text-slate-700 dark:text-slate-300">${exp.paidBy}</strong></div>
-                            </div>
-                            <!-- DELETE BUTTON FOR EXPENSE -->
-                            <button onclick="deleteExpense('${exp.id}')" class="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 flex items-center justify-center active:scale-95 transition-all" title="Delete Expense">
-                                <i class="fa-solid fa-trash-can text-xs"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[10px]">
-                        <div class="flex items-center gap-1 overflow-x-auto no-scrollbar">
-                            <span class="text-slate-400 font-semibold mr-1">Split (${exp.includedMembers.length}):</span>
-                            ${memberBadges}
-                        </div>
-                        ${isIncluded ? `<span class="font-bold text-indigo-600 dark:text-indigo-400">Your Share: ₹${userShare.toFixed(2)}</span>` : '<span class="text-slate-400 font-medium">Your Share: ₹0.00</span>'}
-                    </div>
-                `;
-                feed.appendChild(card);
-            });
-        }
-
-        function renderMembersTab() {
-            renderMembersManagementList();
-            renderSuggestedSettlements();
-        }
-
-        function renderMembersManagementList() {
-            const list = document.getElementById('members-management-list');
-            if (!list) return;
-            list.innerHTML = '';
-
-            roomMembers.forEach(m => {
-                const isCurrent = m.name === currentUser;
-                const card = document.createElement('div');
-                card.className = 'flex justify-between items-center p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800';
-                card.innerHTML = `
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 font-bold text-xs flex items-center justify-center">
-                            ${m.name.charAt(0)}
-                        </div>
-                        <div>
-                            <div class="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
-                                ${m.name} ${isCurrent ? '<span class="text-[9px] bg-indigo-600 text-white font-bold px-1.5 rounded-full">Logged In</span>' : ''}
-                            </div>
-                            <div class="text-[10px] text-slate-400 font-mono">PIN: ${m.pin}</div>
-                        </div>
-                    </div>
-                    <div>
-                        ${roomMembers.length > 1 ? `
-                            <button onclick="deleteRoomMember('${m.name}')" class="px-2.5 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 text-[11px] font-bold flex items-center gap-1 active:scale-95 transition-all">
-                                <i class="fa-solid fa-user-minus text-[10px]"></i> Remove
-                            </button>
-                        ` : ''}
-                    </div>
-                `;
-                list.appendChild(card);
-            });
-        }
-
-        function openAddMemberModal() {
-            document.getElementById('new-member-name').value = '';
-            document.getElementById('new-member-pin').value = '';
-            document.getElementById('add-member-modal').classList.remove('hidden');
-        }
-
-        function closeAddMemberModal() {
-            document.getElementById('add-member-modal').classList.add('hidden');
-        }
-
-        function saveNewRoomMember() {
-            const name = document.getElementById('new-member-name').value.trim();
-            const pin = document.getElementById('new-member-pin').value.trim();
-
-            if (!name || pin.length !== 4) {
-                showToast('Provide a valid Name and 4-Digit PIN.', 'error');
-                return;
-            }
-
-            if (roomMembers.some(m => m.name.toLowerCase() === name.toLowerCase())) {
-                showToast('A member with this name already exists!', 'error');
-                return;
-            }
-
-            roomMembers.push({ name, pin });
-            saveRoomMembers();
-            closeAddMemberModal();
-            showToast(`Added ${name} to Room 3 members!`, 'success');
-        }
-
-        function deleteRoomMember(memberName) {
-            if (roomMembers.length <= 1) {
-                showToast('Cannot delete the last remaining room member!', 'error');
-                return;
-            }
-
-            if (!confirm(`Are you sure you want to remove ${memberName} from Room 3?`)) return;
-
-            roomMembers = roomMembers.filter(m => m.name !== memberName);
-            saveRoomMembers();
-
-            if (currentUser === memberName) {
-                currentUser = roomMembers[0].name;
-                localStorage.setItem('room3_user', currentUser);
-                showToast(`Removed logged in member. Switched profile to ${currentUser}.`, 'info');
-            } else {
-                showToast(`Removed member ${memberName}.`, 'info');
-            }
-
-            renderHomeTab();
-            renderMembersTab();
-        }
-
-        function renderSuggestedSettlements() {
-            let paidMap = {};
-            let shareMap = {};
-
-            roomMembers.forEach(m => {
-                paidMap[m.name] = 0;
-                shareMap[m.name] = 0;
-            });
-
-            expenses.forEach(exp => {
-                paidMap[exp.paidBy] = (paidMap[exp.paidBy] || 0) + parseFloat(exp.amount);
-                if (exp.shares) {
-                    Object.keys(exp.shares).forEach(m => {
-                        shareMap[m] = (shareMap[m] || 0) + parseFloat(exp.shares[m]);
-                    });
-                }
-            });
-
-            let netBalances = {};
-            roomMembers.forEach(m => {
-                netBalances[m.name] = paidMap[m.name] - shareMap[m.name];
-            });
-
-            let debtors = [], creditors = [];
-            roomMembers.forEach(m => {
-                const net = netBalances[m.name];
-                if (net < -0.01) debtors.push({ member: m.name, amount: -net });
-                if (net > 0.01) creditors.push({ member: m.name, amount: net });
-            });
-
-            const txContainer = document.getElementById('suggested-settlements');
-            txContainer.innerHTML = '';
-
-            let i = 0, j = 0, count = 0;
-            while (i < debtors.length && j < creditors.length) {
-                let d = debtors[i], c = creditors[j];
-                let transferAmt = Math.min(d.amount, c.amount);
-
-                const card = document.createElement('div');
-                card.className = 'p-3 rounded-2xl border border-indigo-100 dark:border-indigo-900/40 bg-indigo-50/50 dark:bg-indigo-950/30 flex items-center justify-between text-xs';
-                card.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span class="font-extrabold text-rose-500">${d.member}</span>
-                        <i class="fa-solid fa-arrow-right text-[10px] text-slate-400"></i>
-                        <span class="font-extrabold text-emerald-500">${c.member}</span>
-                    </div>
-                    <span class="font-extrabold text-indigo-600 dark:text-indigo-400 text-sm">₹${transferAmt.toFixed(2)}</span>
-                `;
-                txContainer.appendChild(card);
-
-                d.amount -= transferAmt;
-                c.amount -= transferAmt;
-                if (d.amount < 0.01) i++;
-                if (c.amount < 0.01) j++;
-                count++;
-            }
-
-            if (count === 0) {
-                txContainer.innerHTML = `<div class="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 text-xs font-bold text-center">All balances settled! 🎉</div>`;
-            }
-        }
-
-        function saveSheetUrl() {
-            const url = document.getElementById('sheet-url-input').value.trim();
-            sheetEndpoint = url;
-            localStorage.setItem('room3_sheet_url', url);
-            updateSyncBadge();
-            showToast('Google Sheet Web App URL saved!', 'success');
-        }
-
-        function updateSyncBadge() {
-            const badge = document.getElementById('sync-badge');
-            if (sheetEndpoint) {
-                badge.textContent = 'Active Google Sync';
-                badge.className = 'text-[10px] bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full font-bold';
-            } else {
-                badge.textContent = 'Local / Offline';
-                badge.className = 'text-[10px] bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full font-bold';
-            }
-        }
-
-        async function syncToGoogleSheets(data) {
-            try {
-                showToast('Syncing to Google Sheet...', 'info');
-                await fetch(sheetEndpoint, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                showToast('Synced to Sheet!', 'success');
-            } catch (err) {
-                showToast('Sheet sync failed.', 'error');
-            }
-        }
-
-        async function pullFromGoogleSheets() {
-            if (!sheetEndpoint) {
-                showToast('Save Google Sheet Web App URL first!', 'error');
-                return;
-            }
-            try {
-                showToast('Pulling data from Google Sheet...', 'info');
-                const res = await fetch(sheetEndpoint);
-                const data = await res.json();
-                
-                if (Array.isArray(data) && data.length > 0) {
-                    const activeNames = roomMembers.map(m => m.name);
-                    expenses = data.map(item => {
-                        const inc = item.includedMembers.length > 0 ? item.includedMembers : activeNames;
-                        const perHead = parseFloat(item.amount) / inc.length;
-                        let shares = {};
-                        inc.forEach(m => shares[m] = perHead);
-                        return {
-                            id: item.id || 'exp-' + Date.now(),
-                            title: item.title,
-                            amount: parseFloat(item.amount),
-                            paidBy: item.paidBy,
-                            category: item.category || 'Others',
-                            date: item.date,
-                            includedMembers: inc,
-                            shares: shares
-                        };
-                    });
-                    saveExpenses();
-                    renderHomeTab();
-                    showToast('Successfully updated from Google Sheet!', 'success');
-                } else {
-                    showToast('Sheet is empty or returned no entries.', 'info');
-                }
-            } catch (e) {
-                showToast('Failed to pull data. Ensure doGet is configured.', 'error');
-            }
-        }
-
-        function copyScriptCode() {
-            const code = document.getElementById('script-code-block').innerText;
-            const el = document.createElement('textarea');
-            el.value = code;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            showToast('Apps Script code copied to clipboard!', 'info');
-        }
-
-        function resetDefaultData() {
-            localStorage.removeItem('room3_flexible_expenses');
-            localStorage.removeItem('room3_active_members');
-            loadLocalState();
-            renderHomeTab();
-            showToast('Demo data restored.', 'success');
-        }
-
-        function clearAllExpenses() {
-            expenses = [];
-            saveExpenses();
-            renderHomeTab();
-            showToast('Local ledger cleared.', 'info');
-        }
-
-        function toggleTheme() {
-            document.documentElement.classList.toggle('dark');
-            const icon = document.getElementById('theme-icon');
-            if (document.documentElement.classList.contains('dark')) {
-                icon.className = 'fa-solid fa-sun text-amber-400 text-sm';
-            } else {
-                icon.className = 'fa-solid fa-moon text-slate-600 text-sm';
-            }
-        }
-
-        function openPinModal() { 
-            const list = document.getElementById('pin-directory-list');
-            list.innerHTML = '';
-            roomMembers.forEach(m => {
-                const row = document.createElement('div');
-                row.className = 'flex justify-between bg-slate-800/80 px-3 py-2 rounded-xl';
-                row.innerHTML = `<span>${m.name}</span><span class="font-mono text-indigo-300 font-bold">${m.pin}</span>`;
-                list.appendChild(row);
-            });
-            document.getElementById('pin-modal').classList.remove('hidden'); 
-        }
-
-        function closePinModal() { document.getElementById('pin-modal').classList.add('hidden'); }
-
-        function showToast(msg, type = 'info') {
-            const el = document.getElementById('toast');
-            const text = document.getElementById('toast-text');
-            const icon = document.getElementById('toast-icon');
-
-            text.textContent = msg;
-
-            if (type === 'success') {
-                icon.className = 'fa-solid fa-circle-check text-emerald-400 text-sm';
-            } else if (type === 'error') {
-                icon.className = 'fa-solid fa-triangle-exclamation text-rose-400 text-sm';
-            } else {
-                icon.className = 'fa-solid fa-circle-info text-indigo-400 text-sm';
-            }
-
-            el.classList.remove('-translate-y-20', 'opacity-0');
-            el.classList.add('translate-y-0', 'opacity-100');
-
-            setTimeout(() => {
-                el.classList.remove('translate-y-0', 'opacity-100');
-                el.classList.add('-translate-y-20', 'opacity-0');
-            }, 2500);
-        }
-    </script>
+    }
+
+    function syncExpenseToSheet(item, actionType) {
+      if (!googleSheetUrl || !googleSheetUrl.startsWith('https://script.google.com/')) return;
+
+      const payload = {
+        action: actionType,
+        ...item,
+        involved: Array.isArray(item.involved) ? item.involved.join(', ') : item.involved
+      };
+
+      fetch(googleSheetUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(err => console.warn("Sheets Sync Notice:", err));
+    }
+
+    function deleteExpenseFromSheet(id) {
+      if (!googleSheetUrl || !googleSheetUrl.startsWith('https://script.google.com/')) return;
+
+      const payload = {
+        action: 'deleteExpense',
+        id: id
+      };
+
+      fetch(googleSheetUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(err => console.warn("Sheets Delete Notice:", err));
+    }
+
+    function toggleDarkMode() {
+      const html = document.documentElement;
+      const themeIcon = document.getElementById('themeIcon');
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        themeIcon.setAttribute('data-lucide', 'sun');
+      } else {
+        html.classList.add('dark');
+        themeIcon.setAttribute('data-lucide', 'moon');
+      }
+      lucide.createIcons();
+    }
+
+    function togglePassVisibility(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        icon.setAttribute('data-lucide', 'eye');
+      }
+      lucide.createIcons();
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
 </body>
 </html>
