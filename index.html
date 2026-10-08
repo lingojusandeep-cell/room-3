@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room 3 Split Expenses - Professional Edition</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inter & Plus Jakarta Sans Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        emerald: {
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            900: '#064e3b',
+                        },
+                        indigo: {
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .dark .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+        }
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(248,250,252,0.95));
+            border: 1px solid rgba(226, 232, 240, 0.9);
+        }
+        .dark .glass-card {
+            background: linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95));
+            border: 1px solid rgba(51, 65, 85, 0.7);
+        }
+        .gradient-border {
+            position: relative;
+            border-radius: 1rem;
+        }
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 1.05rem;
+            padding: 1px;
+            background: linear-gradient(to right, #10b981, #6366f1, #3b82f6);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 bg-slate-900/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-800 text-white shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 font-extrabold text-lg">
+                    R3
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-lg font-bold tracking-tight text-white">Room 3 Split Expenses</h1>
+                        <span id="syncBadge" class="hidden items-center gap-1.5 text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-semibold">
+                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                            Sheet Auto-Sync Active
+                        </span>
+                    </div>
+                    <p id="roomMembersHeader" class="text-xs text-slate-400 font-medium"></p>
+                </div>
+            </div>
+
+            <div id="userInfoHeader" class="hidden items-center gap-2 sm:gap-3">
+                <!-- Manual Refresh Button -->
+                <button onclick="fetchDataFromGoogleSheet(true)" id="btnRefresh" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 active:scale-95">
+                    <i class="fa-solid fa-arrows-rotate text-xs" id="refreshIcon"></i>
+                    <span class="hidden sm:inline">Refresh Data</span>
+                </button>
+
+                <!-- Script setup modal toggle -->
+                <button onclick="openSyncModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-1.5" title="Google Sheets Setup & Instructions">
+                    <i class="fa-solid fa-file-excel text-emerald-400 text-sm"></i>
+                    <span class="hidden md:inline">Sheets Integration</span>
+                </button>
+
+                <button onclick="openMemberModal()" class="bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5" title="Manage Room Members">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span class="hidden md:inline">Members</span>
+                </button>
+
+                <!-- Active Profile Info -->
+                <div class="bg-slate-800/80 border border-slate-700/80 px-3 py-1.5 rounded-xl text-right hidden sm:block">
+                    <span id="userDisplayName" class="text-xs font-bold text-slate-100 block"></span>
+                    <span class="text-[10px] text-emerald-400 flex items-center justify-end gap-1">
+                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> Online
+                    </span>
+                </div>
+
+                <button onclick="logout()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5" title="Logout">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span class="hidden sm:inline">Logout</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Authentication Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 sm:p-8 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-600"></div>
+            
+            <div class="text-center mb-6 pt-2">
+                <div class="inline-flex p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 mb-3 border border-emerald-200 dark:border-emerald-800">
+                    <i class="fa-solid fa-users-viewfinder text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Room 3 Access</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Select your profile and enter passcode (Default: 1234)</p>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Member Account</label>
+                    <select id="loginUserSelect" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition font-medium" required>
+                        <option value="" disabled selected>-- Choose Profile --</option>
+                        <option value="Sai">Sai</option>
+                        <option value="Pavan">Pavan</option>
+                        <option value="John">John</option>
+                        <option value="Rakesh">Rakesh</option>
+                        <option value="Praveen">Praveen</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Passcode</label>
+                    <input type="password" id="loginPassword" placeholder="Enter password (1234)" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required />
+                </div>
+
+                <div id="loginError" class="hidden p-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 rounded-xl text-xs flex items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>Invalid password! Passcode is <strong>1234</strong>.</span>
+                </div>
+
+                <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-bold py-3.5 px-4 rounded-xl transition shadow-lg shadow-slate-900/20 dark:shadow-emerald-600/20 flex items-center justify-center gap-2 text-sm">
+                    <span>Login to Dashboard</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Container -->
+    <main id="appContent" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full space-y-8 hidden">
+        
+        <!-- Google Sheets Banner Status -->
+        <div id="syncStatusBanner" class="bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-amber-500/20 rounded-xl text-amber-600 dark:text-amber-400">
+                    <i class="fa-solid fa-triangle-exclamation text-base"></i>
+                </div>
+                <span><strong>Google Sheets disconnected:</strong> Link your sheet API to generate full breakdown tabs & live user syncing.</span>
+            </div>
+            <button onclick="openSyncModal()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-xl whitespace-nowrap text-xs transition shadow">
+                Connect Google Sheet
+            </button>
+        </div>
+
+        <!-- Metrics Stats Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="glass-card rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Room Expense</p>
+                        <h3 id="statTotalExpense" class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">₹0.00</h3>
+                    </div>
+                    <div class="p-3 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-2xl">
+                        <i class="fa-solid fa-receipt text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-center text-[11px] text-slate-500 dark:text-slate-400">
+                    <span id="statExpenseCount" class="font-semibold text-slate-700 dark:text-slate-300">0 expenses logged</span>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Personal Share</p>
+                        <h3 id="statMyShare" class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">₹0.00</h3>
+                    </div>
+                    <div class="p-3 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 rounded-2xl">
+                        <i class="fa-solid fa-pie-chart text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
+                    Calculated from involved items
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Amount You Paid</p>
+                        <h3 id="statMyPaid" class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">₹0.00</h3>
+                    </div>
+                    <div class="p-3 bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 rounded-2xl">
+                        <i class="fa-solid fa-wallet text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
+                    Total out of pocket spending
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your Net Balance</p>
+                        <h3 id="statNetBalance" class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">₹0.00</h3>
+                    </div>
+                    <div id="statNetIconBg" class="p-3 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-2xl">
+                        <i class="fa-solid fa-scale-balanced text-xl"></i>
+                    </div>
+                </div>
+                <div id="statNetStatus" class="mt-3 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                    Balanced
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Body Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Side: Expense Logging Form -->
+            <div class="lg:col-span-5 space-y-6">
+                <div class="glass-panel rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 relative">
+                    <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                                <i class="fa-solid fa-square-plus text-lg"></i>
+                            </div>
+                            <h2 class="text-base font-bold text-slate-900 dark:text-white">Add New Expense</h2>
+                        </div>
+                        <span class="text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2.5 py-1 rounded-full">Room 3</span>
+                    </div>
+
+                    <form id="addExpenseForm" onsubmit="handleAddExpense(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Expense Title / Item</label>
+                            <input type="text" id="expTitle" placeholder="e.g. Groceries, Wi-Fi Bill, Milk, Cooking Oil" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required />
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Amount (₹)</label>
+                                <input type="number" step="0.01" min="0.01" id="expAmount" placeholder="0.00" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Date</label>
+                                <input type="date" id="expDate" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition" required />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Paid By Member</label>
+                            <select id="expPaidBy" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition font-medium" required>
+                                <option value="Sai">Sai</option>
+                                <option value="Pavan">Pavan</option>
+                                <option value="John">John</option>
+                                <option value="Rakesh">Rakesh</option>
+                                <option value="Praveen">Praveen</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Involved Members (Split Share)</label>
+                                <div class="space-x-2 text-xs">
+                                    <button type="button" onclick="selectAllMembers(true)" class="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">Select All</button>
+                                    <span class="text-slate-300 dark:text-slate-700">|</span>
+                                    <button type="button" onclick="selectAllMembers(false)" class="text-slate-400 hover:underline">Clear</button>
+                                </div>
+                            </div>
+                            <div id="involvedMembersContainer" class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-3 border border-slate-200 dark:border-slate-700/80 space-y-2">
+                                <!-- Populated dynamically from room members -->
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
+                                <i class="fa-solid fa-circle-info text-xs"></i> Uncheck members who are not participating in this expense.
+                            </p>
+                        </div>
+
+                        <button type="submit" id="btnSubmitExp" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 text-sm active:scale-98">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                            <span>Record & Sync Expense</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Side: Settlement Matrix & Expense History -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- Individual Member Balances Card -->
+                <div class="glass-panel rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center space-x-2">
+                            <div class="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                                <i class="fa-solid fa-users text-lg"></i>
+                            </div>
+                            <h2 class="text-base font-bold text-slate-900 dark:text-white">Member Balances</h2>
+                        </div>
+                        <span class="text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 px-3 py-1 rounded-full">Individual Totals</span>
+                    </div>
+
+                    <div id="memberTotalsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+
+                    <div class="border-t border-slate-100 dark:border-slate-800 pt-4">
+                        <h3 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-handshake-simple text-emerald-500"></i>
+                            Optimized Settlement Suggestions
+                        </h3>
+                        <div id="settlementsContainer" class="space-y-2">
+                            <!-- Populated dynamically by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expense History Table -->
+                <div class="glass-panel rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center space-x-2">
+                            <div class="p-2 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400">
+                                <i class="fa-solid fa-list-ul text-lg"></i>
+                            </div>
+                            <h2 class="text-base font-bold text-slate-900 dark:text-white">All Member Expenses</h2>
+                        </div>
+                        <button onclick="fetchDataFromGoogleSheet(true)" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold flex items-center gap-1.5">
+                            <i class="fa-solid fa-rotate-right text-xs"></i>
+                            <span>Sync All Live Data</span>
+                        </button>
+                    </div>
+
+                    <div id="expenseList" class="space-y-3 max-h-[520px] overflow-y-auto pr-1">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+
+    <!-- Room Member Management Modal -->
+    <div id="memberModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeMemberModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-5">
+                <div class="p-3 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-2xl">
+                    <i class="fa-solid fa-user-gear text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white">Room Members</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Add, edit or remove Room 3 members.</p>
+                </div>
+            </div>
+
+            <form onsubmit="addRoomMember(event)" class="flex gap-2 mb-5">
+                <input id="newMemberName" type="text" maxlength="40" placeholder="Enter member name"
+                    class="flex-1 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-3 rounded-xl text-xs">
+                    <i class="fa-solid fa-plus mr-1"></i>Add
+                </button>
+            </form>
+
+            <div id="memberManagementList" class="space-y-2"></div>
+
+            <div class="mt-5 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-[11px] text-amber-700 dark:text-amber-300">
+                <i class="fa-solid fa-circle-info mr-1"></i>
+                Removing a member does not delete old expenses. Historical expenses stay unchanged.
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Sheets Integration Modal -->
+    <div id="syncModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-2xl w-full p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeSyncModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+
+            <div class="flex items-center space-x-3 mb-3">
+                <div class="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-2xl">
+                    <i class="fa-solid fa-file-excel text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white">Google Sheets Integration Setup</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Automatically creates 3 live breakdown tabs with totals & calculations.</p>
+                </div>
+            </div>
+
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-1.5">Google Apps Script Web App URL</label>
+                    <input type="url" id="sheetApiUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono" />
+                </div>
+
+                <div class="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/80 text-xs text-slate-600 dark:text-slate-300 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-code text-indigo-500"></i>
+                            Apps Script Code (Creates 3 Automated Sheet Tabs)
+                        </span>
+                        <button onclick="copyAppsScriptCode()" class="text-[11px] bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 px-2.5 py-1 rounded-lg font-semibold hover:bg-indigo-100 transition">
+                            <i class="fa-regular fa-copy mr-1"></i>Copy Code
+                        </button>
+                    </div>
+                    <pre id="appsScriptCodeText" class="bg-slate-900 text-emerald-400 p-3.5 rounded-xl text-[10px] overflow-x-auto font-mono leading-relaxed border border-slate-800">function doGet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Expenses') || ss.insertSheet('Expenses');
+  ensureSheets(ss);
+
+  var rows = sheet.getDataRange().getValues();
+  var data = [];
+  for (var i = 1; i &lt; rows.length; i++) {
+    if (rows[i][0]) {
+      data.push({
+        id: String(rows[i][0]),
+        date: String(rows[i][1]),
+        title: String(rows[i][2]),
+        amount: Number(rows[i][3]),
+        paidBy: String(rows[i][4]),
+        involved: String(rows[i][5]).split(',').map(function(s){ return s.trim(); }).filter(Boolean),
+        createdBy: String(rows[i][6] || rows[i][4])
+      });
+    }
+  }
+  return ContentService.createTextOutput(JSON.stringify({
+    expenses: data,
+    members: getMembers(ss)
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  ensureSheets(ss);
+
+  var req = JSON.parse(e.postData.contents || '{}');
+
+  if (req.action === 'add') {
+    var sheet = ss.getSheetByName('Expenses');
+    sheet.appendRow([
+      req.id, req.date, req.title, Number(req.amount),
+      req.paidBy, (req.involved || []).join(', '), req.createdBy || req.paidBy
+    ]);
+  } else if (req.action === 'delete') {
+    var expSheet = ss.getSheetByName('Expenses');
+    var rows = expSheet.getDataRange().getValues();
+    for (var i = 1; i &lt; rows.length; i++) {
+      if (String(rows[i][0]) === String(req.id)) {
+        expSheet.deleteRow(i + 1);
+        break;
+      }
+    }
+  } else if (req.action === 'replaceAllExpenses') {
+    var replaceSheet = ss.getSheetByName('Expenses');
+    replaceSheet.clearContents();
+    replaceSheet.appendRow(['ID','Date','Title','Amount','PaidBy','Involved Members','CreatedBy']);
+    (req.expenses || []).forEach(function(exp) {
+      replaceSheet.appendRow([
+        exp.id, exp.date, exp.title, Number(exp.amount),
+        exp.paidBy, (exp.involved || []).join(', '), exp.createdBy || exp.paidBy
+      ]);
+    });
+  } else if (req.action === 'saveMembers') {
+    var memberSheet = ss.getSheetByName('Members');
+    memberSheet.clearContents();
+    memberSheet.appendRow(['Member Name']);
+    (req.members || []).forEach(function(name) {
+      if (String(name).trim()) memberSheet.appendRow([String(name).trim()]);
+    });
+  }
+
+  recalculateSheetTabs(ss);
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success',
+    members: getMembers(ss)
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function ensureSheets(ss) {
+  var memberSheet = ss.getSheetByName('Members') || ss.insertSheet('Members');
+  if (memberSheet.getLastRow() === 0) {
+    memberSheet.appendRow(['Member Name']);
+    ['Sai','Pavan','John','Rakesh','Praveen'].forEach(function(m) {
+      memberSheet.appendRow([m]);
+    });
+  }
+
+  var expSheet = ss.getSheetByName('Expenses') || ss.insertSheet('Expenses');
+  if (expSheet.getLastRow() === 0) {
+    expSheet.appendRow(['ID','Date','Title','Amount','PaidBy','Involved Members','CreatedBy']);
+  }
+}
+
+function getMembers(ss) {
+  var sheet = ss.getSheetByName('Members') || ss.insertSheet('Members');
+  var rows = sheet.getDataRange().getValues();
+  var members = [];
+  for (var i = 1; i &lt; rows.length; i++) {
+    var name = String(rows[i][0] || '').trim();
+    if (name) members.push(name);
+  }
+  return members;
+}
+
+function recalculateSheetTabs(ss) {
+  var members = getMembers(ss);
+  var expSheet = ss.getSheetByName('Expenses');
+  var rows = expSheet.getDataRange().getValues();
+
+  var totals = {};
+  var shares = {};
+  members.forEach(function(m) {
+    totals[m] = 0;
+    shares[m] = 0;
+  });
+
+  var grandTotal = 0;
+  for (var i = 1; i &lt; rows.length; i++) {
+    if (!rows[i][0]) continue;
+
+    var amt = Number(rows[i][3]) || 0;
+    var payer = String(rows[i][4]).trim();
+    var inv = String(rows[i][5] || '').split(',').map(function(s) {
+      return s.trim();
+    }).filter(Boolean);
+
+    grandTotal += amt;
+    if (totals[payer] !== undefined) totals[payer] += amt;
+
+    if (inv.length &gt; 0) {
+      var split = amt / inv.length;
+      inv.forEach(function(m) {
+        if (shares[m] !== undefined) shares[m] += split;
+      });
+    }
+  }
+
+  var totSheet = ss.getSheetByName('Member Totals &amp; Balances') ||
+                 ss.insertSheet('Member Totals &amp; Balances');
+  totSheet.clear();
+  totSheet.appendRow([
+    'Member Name','Total Paid (₹)','Personal Share (₹)',
+    'Net Balance (₹)','Status'
+  ]);
+
+  members.forEach(function(m) {
+    var net = totals[m] - shares[m];
+    var status = net &gt; 0
+      ? 'Gets Back ₹' + net.toFixed(2)
+      : (net &lt; 0 ? 'Owes ₹' + Math.abs(net).toFixed(2) : 'Settled');
+
+    totSheet.appendRow([m, totals[m], shares[m], net, status]);
+  });
+
+  totSheet.appendRow(['GRAND TOTAL', grandTotal, grandTotal, 0, '-']);
+}</pre>
+
+                    <div class="space-y-1.5 text-[11px]">
+                        <p><strong>Steps to Link Google Sheet:</strong></p>
+                        <p>1. Open your Google Sheet &gt; Extensions &gt; Apps Script.</p>
+                        <p>2. Paste the code above and click <b>Deploy &gt; New deployment</b>.</p>
+                        <p>3. Choose <b>Web app</b> | Execute as: <b>Me</b> | Who has access: <b>Anyone</b>.</p>
+                        <p>4. Copy the Web app URL and paste it into the field above.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="saveSyncSettings()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl text-xs transition shadow-md shadow-emerald-600/20">
+                        Save & Sync Now
+                    </button>
+                    <button onclick="disableSync()" class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold py-3 px-4 rounded-xl text-xs transition">
+                        Disable Sync
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 dark:bg-slate-800 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-700 text-xs font-semibold translate-y-24 opacity-0 transition-all duration-300 z-50 flex items-center gap-2.5">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toastMsg">Action executed successfully</span>
+    </div>
+
+    <script>
+        let ROOM_MEMBERS = loadRoomMembers();
+        function loadRoomMembers() {
+            const saved = localStorage.getItem('room3_members');
+            if (saved) {
+                try {
+                    const arr = JSON.parse(saved);
+                    if (Array.isArray(arr) && arr.length) return arr.filter(Boolean);
+                } catch (e) {}
+            }
+            return ['Sai', 'Pavan', 'John', 'Rakesh', 'Praveen'];
+        }
+        function saveRoomMembers() {
+            localStorage.setItem('room3_members', JSON.stringify(ROOM_MEMBERS));
+        }
+        const DEFAULT_PASS = '1234';
+        
+        let currentUser = null;
+        let expenses = [];
+        let googleSheetUrl = localStorage.getItem('room3_sheet_url') || '';
+        let autoSyncInterval = null;
+
+        window.onload = function() {
+            document.getElementById('expDate').value = new Date().toISOString().split('T')[0];
+            loadExpensesFromStorage();
+            checkSavedSession();
+            updateSyncUIStatus();
+            renderRoomMemberControls();
+
+            if (googleSheetUrl) {
+                fetchDataFromGoogleSheet(false);
+            }
+
+            // Background polling every 30 seconds for live updates
+            autoSyncInterval = setInterval(() => {
+                if (googleSheetUrl && currentUser) {
+                    fetchDataFromGoogleSheet(false);
+                }
+            }, 30000);
+        };
+
+        // --- AUTH & SESSION LOGIC ---
+        function handleLogin(e) {
+            e.preventDefault();
+            const selectedUser = document.getElementById('loginUserSelect').value;
+            const passwordInput = document.getElementById('loginPassword').value;
+            const errorElement = document.getElementById('loginError');
+
+            if (ROOM_MEMBERS.includes(selectedUser) && passwordInput === DEFAULT_PASS) {
+                currentUser = selectedUser;
+                localStorage.setItem('room3_user', currentUser);
+                errorElement.classList.add('hidden');
+                document.getElementById('loginPassword').value = '';
+                showAppUI();
+                showToast(`Welcome back, ${currentUser}!`);
+                
+                if (googleSheetUrl) {
+                    fetchDataFromGoogleSheet(true);
+                }
+            } else {
+                errorElement.classList.remove('hidden');
+            }
+        }
+
+        function checkSavedSession() {
+            const savedUser = localStorage.getItem('room3_user');
+            if (savedUser && ROOM_MEMBERS.includes(savedUser)) {
+                currentUser = savedUser;
+                showAppUI();
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('room3_user');
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('appContent').classList.add('hidden');
+            document.getElementById('userInfoHeader').classList.add('hidden');
+            showToast('Logged out successfully');
+        }
+
+        function showAppUI() {
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('appContent').classList.remove('hidden');
+            document.getElementById('userInfoHeader').classList.remove('hidden');
+            document.getElementById('userInfoHeader').classList.add('flex');
+            document.getElementById('userDisplayName').textContent = currentUser;
+            document.getElementById('expPaidBy').value = currentUser;
+            renderDashboard();
+        }
+
+        // --- FETCH LIVE DATA FROM GOOGLE SHEET ---
+        function fetchDataFromGoogleSheet(isManualClick) {
+            if (!googleSheetUrl) {
+                if (isManualClick) openSyncModal();
+                return;
+            }
+
+            const refreshIcon = document.getElementById('refreshIcon');
+            if (refreshIcon) refreshIcon.classList.add('fa-spin');
+
+            fetch(googleSheetUrl)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && !Array.isArray(data) && Array.isArray(data.members)) {
+                        if (data.members.length) {
+                            ROOM_MEMBERS = data.members;
+                            saveRoomMembers();
+                            renderRoomMemberControls();
+                        }
+                        data = data.expenses || [];
+                    }
+                    if (Array.isArray(data)) {
+                        expenses = data.map(item => ({
+                            id: item.id || 'EXP-' + Date.now(),
+                            date: item.date || new Date().toISOString().split('T')[0],
+                            title: item.title || 'Untitled Expense',
+                            amount: parseFloat(item.amount) || 0,
+                            paidBy: item.paidBy || 'Sai',
+                            involved: Array.isArray(item.involved) ? item.involved : (item.involved ? item.involved.split(',').map(s=>s.trim()) : ROOM_MEMBERS),
+                            createdBy: item.createdBy || item.paidBy || 'Sai'
+                        }));
+
+                        saveExpensesToStorage();
+                        renderDashboard();
+
+                        if (isManualClick) {
+                            showToast('Expenses synced from Google Sheet!');
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error('Fetch error:', err);
+                    if (isManualClick) {
+                        showToast('Could not fetch from Sheet. Check Web App URL.', true);
+                    }
+                })
+                .finally(() => {
+                    if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+                });
+        }
+
+        // --- EXPENSE ADD & REMOVE HANDLERS ---
+        function handleAddExpense(e) {
+            e.preventDefault();
+
+            const title = document.getElementById('expTitle').value.trim();
+            const amount = parseFloat(document.getElementById('expAmount').value);
+            const date = document.getElementById('expDate').value;
+            const paidBy = document.getElementById('expPaidBy').value;
+
+            if (!ROOM_MEMBERS.includes(paidBy)) {
+                showToast('Please select a valid current room member as payer.', true);
+                return;
+            }
+
+            const checkedCheckboxes = document.querySelectorAll('.member-checkbox:checked');
+            const involved = Array.from(checkedCheckboxes).map(cb => cb.value);
+
+            if (involved.length === 0) {
+                showToast('Please select at least 1 member involved!', true);
+                return;
+            }
+
+            const newExpense = {
+                id: 'EXP-' + Date.now(),
+                title: title,
+                amount: amount,
+                date: date,
+                paidBy: paidBy,
+                involved: involved,
+                createdBy: currentUser
+            };
+
+            expenses.unshift(newExpense);
+            saveExpensesToStorage();
+            renderDashboard();
+
+            // Push to Sheet
+            syncExpenseToGoogleSheet(newExpense, 'add');
+
+            // Reset form
+            document.getElementById('addExpenseForm').reset();
+            document.getElementById('expDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('expPaidBy').value = currentUser;
+            selectAllMembers(true);
+
+            showToast('Expense added & synced to sheet!');
+        }
+
+        function removeExpense(id) {
+            if (confirm('Are you sure you want to remove this expense entry?')) {
+                const expToRemove = expenses.find(e => e.id === id);
+                expenses = expenses.filter(exp => exp.id !== id);
+                saveExpensesToStorage();
+                renderDashboard();
+
+                if (expToRemove) {
+                    syncExpenseToGoogleSheet(expToRemove, 'delete');
+                }
+
+                showToast('Expense removed and updated in sheet');
+            }
+        }
+
+        function selectAllMembers(checkedState) {
+            document.querySelectorAll('.member-checkbox').forEach(cb => {
+                cb.checked = checkedState;
+            });
+        }
+
+        // --- EXPENSE CALCULATION & SETTLEMENT ALGORITHM ---
+        function calculateBalances() {
+            const memberTotals = {};
+            const memberShares = {};
+            const netBalances = {};
+
+            ROOM_MEMBERS.forEach(m => {
+                memberTotals[m] = 0;
+                memberShares[m] = 0;
+                netBalances[m] = 0;
+            });
+
+            // Historical members can remain in old expenses after removal.
+            expenses.forEach(exp => {
+                if (exp.paidBy && memberTotals[exp.paidBy] === undefined) {
+                    memberTotals[exp.paidBy] = 0;
+                    memberShares[exp.paidBy] = 0;
+                    netBalances[exp.paidBy] = 0;
+                }
+                (exp.involved || []).forEach(m => {
+                    if (memberShares[m] === undefined) {
+                        memberTotals[m] = memberTotals[m] || 0;
+                        memberShares[m] = 0;
+                        netBalances[m] = 0;
+                    }
+                });
+            });
+
+            expenses.forEach(exp => {
+                const payer = exp.paidBy;
+                const totalAmt = exp.amount;
+                const numInvolved = exp.involved.length;
+
+                if (memberTotals[payer] !== undefined) {
+                    memberTotals[payer] += totalAmt;
+                }
+
+                if (numInvolved > 0) {
+                    const splitShare = totalAmt / numInvolved;
+                    exp.involved.forEach(member => {
+                        if (memberShares[member] !== undefined) {
+                            memberShares[member] += splitShare;
+                        }
+                    });
+                }
+            });
+
+            ROOM_MEMBERS.forEach(m => {
+                netBalances[m] = memberTotals[m] - memberShares[m];
+            });
+
+            return { memberTotals, memberShares, netBalances };
+        }
+
+        function calculateSettlements(netBalances) {
+            const debtors = [];
+            const creditors = [];
+
+            for (const member in netBalances) {
+                const bal = netBalances[member];
+                if (bal < -0.01) {
+                    debtors.push({ name: member, amount: Math.abs(bal) });
+                } else if (bal > 0.01) {
+                    creditors.push({ name: member, amount: bal });
+                }
+            }
+
+            const transactions = [];
+            let i = 0, j = 0;
+
+            while (i < debtors.length && j < creditors.length) {
+                const debtor = debtors[i];
+                const creditor = creditors[j];
+                const payAmount = Math.min(debtor.amount, creditor.amount);
+
+                if (payAmount > 0.01) {
+                    transactions.push({
+                        from: debtor.name,
+                        to: creditor.name,
+                        amount: payAmount
+                    });
+                }
+
+                debtor.amount -= payAmount;
+                creditor.amount -= payAmount;
+
+                if (debtor.amount <= 0.01) i++;
+                if (creditor.amount <= 0.01) j++;
+            }
+
+            return transactions;
+        }
+
+        // --- DASHBOARD RENDER ROUTINE ---
+        function renderDashboard() {
+            const { memberTotals, memberShares, netBalances } = calculateBalances();
+            const settlements = calculateSettlements(netBalances);
+
+            const totalRoomExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+            const userPaid = memberTotals[currentUser] || 0;
+            const userShare = memberShares[currentUser] || 0;
+            const userNet = netBalances[currentUser] || 0;
+
+            document.getElementById('statTotalExpense').textContent = `₹${totalRoomExpenses.toFixed(2)}`;
+            document.getElementById('statExpenseCount').textContent = `${expenses.length} expenses logged`;
+            document.getElementById('statMyPaid').textContent = `₹${userPaid.toFixed(2)}`;
+            document.getElementById('statMyShare').textContent = `₹${userShare.toFixed(2)}`;
+            
+            const netEl = document.getElementById('statNetBalance');
+            const netStatusEl = document.getElementById('statNetStatus');
+            const netBgEl = document.getElementById('statNetIconBg');
+
+            if (userNet > 0.01) {
+                netEl.textContent = `+₹${userNet.toFixed(2)}`;
+                netEl.className = 'text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1';
+                netStatusEl.textContent = 'You get back in total';
+                netStatusEl.className = 'mt-3 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400';
+                netBgEl.className = 'p-3 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-2xl';
+            } else if (userNet < -0.01) {
+                netEl.textContent = `-₹${Math.abs(userNet).toFixed(2)}`;
+                netEl.className = 'text-2xl font-extrabold text-rose-600 dark:text-rose-400 mt-1';
+                netStatusEl.textContent = 'You owe in total';
+                netStatusEl.className = 'mt-3 text-[11px] font-semibold text-rose-600 dark:text-rose-400';
+                netBgEl.className = 'p-3 bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 rounded-2xl';
+            } else {
+                netEl.textContent = `₹0.00`;
+                netEl.className = 'text-2xl font-extrabold text-slate-800 dark:text-white mt-1';
+                netStatusEl.textContent = 'Fully settled up!';
+                netStatusEl.className = 'mt-3 text-[11px] font-semibold text-slate-500';
+                netBgEl.className = 'p-3 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl';
+            }
+
+            // Member Totals Grid Render
+            const gridContainer = document.getElementById('memberTotalsGrid');
+            gridContainer.innerHTML = '';
+
+            ROOM_MEMBERS.forEach(m => {
+                const net = netBalances[m];
+                let statusBadge = '';
+                if (net > 0.01) {
+                    statusBadge = `<span class="text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded-md">+₹${net.toFixed(2)}</span>`;
+                } else if (net < -0.01) {
+                    statusBadge = `<span class="text-[10px] font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 px-2 py-0.5 rounded-md">-₹${Math.abs(net).toFixed(2)}</span>`;
+                } else {
+                    statusBadge = `<span class="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-md">Settled</span>`;
+                }
+
+                const isMe = m === currentUser;
+
+                gridContainer.innerHTML += `
+                    <div class="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border ${isMe ? 'border-emerald-500/50 bg-emerald-50/20 dark:bg-emerald-950/20' : 'border-slate-200 dark:border-slate-800'} flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs font-bold text-slate-900 dark:text-white">${m}</span>
+                                ${isMe ? '<span class="text-[9px] bg-emerald-500 text-white font-extrabold px-1.5 rounded">YOU</span>' : ''}
+                            </div>
+                            <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                Paid: ₹${memberTotals[m].toFixed(0)} | Share: ₹${memberShares[m].toFixed(0)}
+                            </div>
+                        </div>
+                        <div>${statusBadge}</div>
+                    </div>
+                `;
+            });
+
+            // Settlements Container
+            const setContainer = document.getElementById('settlementsContainer');
+            setContainer.innerHTML = '';
+
+            if (settlements.length === 0) {
+                setContainer.innerHTML = `
+                    <div class="p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl text-center text-xs text-emerald-700 dark:text-emerald-300 font-semibold flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                        No pending debts! Everyone is settled.
+                    </div>
+                `;
+            } else {
+                settlements.forEach(st => {
+                    const isPayer = st.from === currentUser;
+                    const isReceiver = st.to === currentUser;
+
+                    let bgStyle = 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800';
+                    if (isPayer) bgStyle = 'bg-rose-50/80 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/80';
+                    if (isReceiver) bgStyle = 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/80';
+
+                    setContainer.innerHTML += `
+                        <div class="p-3 border rounded-2xl flex items-center justify-between text-xs sm:text-sm ${bgStyle}">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold text-slate-800 dark:text-slate-100">${st.from}</span>
+                                <i class="fa-solid fa-arrow-right text-slate-400 text-xs"></i>
+                                <span class="font-bold text-slate-800 dark:text-slate-100">${st.to}</span>
+                            </div>
+                            <div class="font-extrabold text-slate-900 dark:text-white">
+                                ₹${st.amount.toFixed(2)}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Expense History List Render
+            const listContainer = document.getElementById('expenseList');
+            listContainer.innerHTML = '';
+
+            if (expenses.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-12 text-slate-400 text-xs">
+                        <i class="fa-solid fa-receipt text-4xl mb-3 block opacity-30"></i>
+                        No expenses logged yet. Add your first item using the form!
+                    </div>
+                `;
+                return;
+            }
+
+            expenses.forEach(exp => {
+                const involvedBadgeList = exp.involved.map(m => `
+                    <span class="inline-block bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[10px] px-1.5 py-0.5 rounded-md font-semibold">
+                        ${m}
+                    </span>
+                `).join(' ');
+
+                const perPersonAmt = (exp.amount / exp.involved.length).toFixed(2);
+
+                listContainer.innerHTML += `
+                    <div class="p-4 bg-slate-50/80 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-slate-200/80 dark:border-slate-800 rounded-2xl transition flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-slate-900 dark:text-white text-sm sm:text-base">${exp.title}</span>
+                                <span class="text-[11px] text-slate-400 font-medium">(${exp.date})</span>
+                            </div>
+                            <div class="text-xs text-slate-600 dark:text-slate-400 flex flex-wrap items-center gap-1.5">
+                                <span>Paid by <strong class="text-slate-800 dark:text-slate-200 font-bold">${exp.paidBy}</strong></span>
+                                <span class="text-slate-300 dark:text-slate-700">•</span>
+                                <span class="flex items-center gap-1">Involved: ${involvedBadgeList}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200 dark:border-slate-800">
+                            <div class="text-left sm:text-right">
+                                <div class="font-extrabold text-slate-900 dark:text-white text-base">₹${exp.amount.toFixed(2)}</div>
+                                <div class="text-[10px] text-slate-500 font-medium">₹${perPersonAmt} / person</div>
+                            </div>
+                            <button onclick="removeExpense('${exp.id}')" class="text-slate-400 hover:text-rose-600 p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/50 transition" title="Delete Entry">
+                                <i class="fa-solid fa-trash-can text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+
+        // --- ROOM MEMBER MANAGEMENT ---
+        function renderRoomMemberControls() {
+            const header = document.getElementById('roomMembersHeader');
+            if (header) header.textContent = ROOM_MEMBERS.join(' • ');
+
+            const loginSelect = document.getElementById('loginUserSelect');
+            if (loginSelect) {
+                const current = loginSelect.value;
+                loginSelect.innerHTML = '<option value="" disabled>-- Choose Profile --</option>';
+                ROOM_MEMBERS.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m;
+                    opt.textContent = m;
+                    loginSelect.appendChild(opt);
+                });
+                if (ROOM_MEMBERS.includes(current)) loginSelect.value = current;
+            }
+
+            const paidSelect = document.getElementById('expPaidBy');
+            if (paidSelect) {
+                const current = paidSelect.value || currentUser;
+                paidSelect.innerHTML = '';
+                ROOM_MEMBERS.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m;
+                    opt.textContent = m;
+                    paidSelect.appendChild(opt);
+                });
+                if (ROOM_MEMBERS.includes(current)) paidSelect.value = current;
+            }
+
+            const involved = document.getElementById('involvedMembersContainer');
+            if (involved) {
+                involved.innerHTML = '';
+                ROOM_MEMBERS.forEach(m => {
+                    involved.insertAdjacentHTML('beforeend', `
+                        <label class="flex items-center space-x-3 cursor-pointer text-sm text-slate-700 dark:text-slate-200 hover:text-emerald-600 transition">
+                            <input type="checkbox" value="${escapeHtml(m)}" class="member-checkbox rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4" checked />
+                            <span class="font-medium">${escapeHtml(m)}</span>
+                        </label>
+                    `);
+                });
+            }
+
+            renderMemberManagementList();
+        }
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, function(c) {
+                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);
+            });
+        }
+
+        function openMemberModal() {
+            renderMemberManagementList();
+            document.getElementById('memberModal').classList.remove('hidden');
+        }
+
+        function closeMemberModal() {
+            document.getElementById('memberModal').classList.add('hidden');
+        }
+
+        function renderMemberManagementList() {
+            const box = document.getElementById('memberManagementList');
+            if (!box) return;
+
+            box.innerHTML = '';
+            ROOM_MEMBERS.forEach((member, index) => {
+                box.insertAdjacentHTML('beforeend', `
+                    <div class="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl">
+                        <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm">
+                            ${escapeHtml(member.charAt(0).toUpperCase())}
+                        </div>
+                        <input id="memberEdit_${index}" value="${escapeHtml(member)}" maxlength="40"
+                            class="flex-1 min-w-0 bg-transparent border border-transparent focus:border-indigo-300 dark:focus:border-indigo-700 rounded-lg px-2 py-1.5 text-sm font-semibold text-slate-800 dark:text-white focus:outline-none">
+                        <button type="button" onclick="renameRoomMember(${index})"
+                            class="p-2 text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-lg" title="Save name">
+                            <i class="fa-solid fa-check"></i>
+                        </button>
+                        <button type="button" onclick="removeRoomMember(${index})"
+                            class="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg" title="Remove member">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `);
+            });
+
+            if (!ROOM_MEMBERS.length) {
+                box.innerHTML = '<div class="text-center py-6 text-sm text-slate-400">No members. Add a member above.</div>';
+            }
+        }
+
+        function addRoomMember(e) {
+            e.preventDefault();
+            const input = document.getElementById('newMemberName');
+            const name = input.value.trim().replace(/\s+/g, ' ');
+
+            if (!name) return;
+            if (name.length < 2) {
+                showToast('Member name must be at least 2 characters.', true);
+                return;
+            }
+            if (ROOM_MEMBERS.some(m => m.toLowerCase() === name.toLowerCase())) {
+                showToast('That member already exists.', true);
+                return;
+            }
+
+            ROOM_MEMBERS.push(name);
+            saveRoomMembers();
+            renderRoomMemberControls();
+            renderDashboard();
+            syncMembersToGoogleSheet();
+            input.value = '';
+            showToast(`${name} added to Room 3`);
+        }
+
+        function renameRoomMember(index) {
+            const oldName = ROOM_MEMBERS[index];
+            const input = document.getElementById(`memberEdit_${index}`);
+            const newName = input ? input.value.trim().replace(/\s+/g, ' ') : '';
+
+            if (!newName || newName.length < 2) {
+                showToast('Enter a valid member name.', true);
+                return;
+            }
+            if (ROOM_MEMBERS.some((m, i) => i !== index && m.toLowerCase() === newName.toLowerCase())) {
+                showToast('That member name already exists.', true);
+                return;
+            }
+
+            // Keep historical expenses consistent when a member is renamed.
+            expenses.forEach(exp => {
+                if (exp.paidBy === oldName) exp.paidBy = newName;
+                if (Array.isArray(exp.involved)) {
+                    exp.involved = exp.involved.map(m => m === oldName ? newName : m);
+                }
+            });
+
+            ROOM_MEMBERS[index] = newName;
+            saveRoomMembers();
+            saveExpensesToStorage();
+            renderRoomMemberControls();
+            renderDashboard();
+
+            // Rewrite current expenses in the sheet so the rename is reflected there.
+            syncAllExpensesToGoogleSheet();
+            syncMembersToGoogleSheet();
+
+            if (currentUser === oldName) {
+                currentUser = newName;
+                localStorage.setItem('room3_user', currentUser);
+                document.getElementById('userDisplayName').textContent = currentUser;
+            }
+
+            showToast(`${oldName} renamed to ${newName}`);
+        }
+
+        function removeRoomMember(index) {
+            const name = ROOM_MEMBERS[index];
+            if (!name) return;
+
+            if (ROOM_MEMBERS.length <= 1) {
+                showToast('Room must have at least one member.', true);
+                return;
+            }
+
+            const hasExpenseHistory = expenses.some(exp =>
+                exp.paidBy === name || (Array.isArray(exp.involved) && exp.involved.includes(name))
+            );
+
+            const message = hasExpenseHistory
+                ? `${name} has expense history. Remove this member from the active room list? Historical expenses will remain unchanged.`
+                : `Remove ${name} from Room 3?`;
+
+            if (!confirm(message)) return;
+
+            ROOM_MEMBERS.splice(index, 1);
+            saveRoomMembers();
+            renderRoomMemberControls();
+            renderDashboard();
+            syncMembersToGoogleSheet();
+
+            if (currentUser === name) {
+                logout();
+            }
+
+            showToast(`${name} removed from active Room 3 members`);
+        }
+
+        function syncMembersToGoogleSheet() {
+            if (!googleSheetUrl) return;
+
+            fetch(googleSheetUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'saveMembers',
+                    members: ROOM_MEMBERS
+                })
+            }).catch(err => console.error('Member sync error:', err));
+        }
+
+        function syncAllExpensesToGoogleSheet() {
+            if (!googleSheetUrl) return;
+
+            // The backend supports add/delete, so rebuild the expense sheet safely.
+            fetch(googleSheetUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'replaceAllExpenses',
+                    expenses: expenses
+                })
+            }).catch(err => console.error('Expense rewrite error:', err));
+        }
+
+        // --- LOCAL STORAGE HELPERS ---
+        function loadExpensesFromStorage() {
+            const stored = localStorage.getItem('room3_expenses');
+            if (stored) {
+                try { expenses = JSON.parse(stored); } catch (e) { expenses = []; }
+            } else {
+                expenses = [];
+            }
+        }
+
+        function saveExpensesToStorage() {
+            localStorage.setItem('room3_expenses', JSON.stringify(expenses));
+        }
+
+        // --- GOOGLE SHEETS SETUP & SYNC HELPERS ---
+        function openSyncModal() {
+            document.getElementById('sheetApiUrl').value = googleSheetUrl;
+            document.getElementById('syncModal').classList.remove('hidden');
+        }
+
+        function closeSyncModal() {
+            document.getElementById('syncModal').classList.add('hidden');
+        }
+
+        function saveSyncSettings() {
+            const url = document.getElementById('sheetApiUrl').value.trim();
+            if (url) {
+                googleSheetUrl = url;
+                localStorage.setItem('room3_sheet_url', googleSheetUrl);
+                updateSyncUIStatus();
+                closeSyncModal();
+                fetchDataFromGoogleSheet(true);
+                syncMembersToGoogleSheet();
+            }
+        }
+
+        function disableSync() {
+            googleSheetUrl = '';
+            localStorage.removeItem('room3_sheet_url');
+            updateSyncUIStatus();
+            closeSyncModal();
+            showToast('Google Sheets sync disabled');
+        }
+
+        function updateSyncUIStatus() {
+            const badge = document.getElementById('syncBadge');
+            const banner = document.getElementById('syncStatusBanner');
+            if (googleSheetUrl) {
+                badge.classList.remove('hidden');
+                badge.classList.add('flex');
+                banner.classList.add('hidden');
+            } else {
+                badge.classList.add('hidden');
+                badge.classList.remove('flex');
+                banner.classList.remove('hidden');
+            }
+        }
+
+        function syncExpenseToGoogleSheet(expense, action) {
+            if (!googleSheetUrl) return;
+
+            fetch(googleSheetUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: action, ...expense })
+            }).then(() => {
+                setTimeout(() => { fetchDataFromGoogleSheet(false); }, 1200);
+            }).catch(err => {
+                console.error('Sheet post error:', err);
+            });
+        }
+
+        function copyAppsScriptCode() {
+            const codeText = document.getElementById('appsScriptCodeText').innerText;
+            navigator.clipboard.writeText(codeText).then(() => {
+                showToast('Apps Script code copied to clipboard!');
+            }).catch(() => {
+                showToast('Failed to copy code', true);
+            });
+        }
+
+        // --- TOAST NOTIFICATIONS ---
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            document.getElementById('toastMsg').textContent = message;
+            
+            if (isError) {
+                toastIcon.className = 'fa-solid fa-circle-xmark text-rose-400 text-base';
+            } else {
+                toastIcon.className = 'fa-solid fa-circle-check text-emerald-400 text-base';
+            }
+
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
